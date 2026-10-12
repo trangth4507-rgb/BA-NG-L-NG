@@ -2,41 +2,69 @@
   "entities": {
     "PayrollPeriod": {
       "title": "PayrollPeriod",
-      "description": "Bảng lương kỳ của doanh nghiệp lưu trữ trực tuyến vĩnh viễn",
+      "description": "Kỳ bảng lương doanh nghiệp với danh sách nhân sự, ngày công, sản phẩm và kết quả trích đóng BHXH, thuế TNCN",
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "ID kỳ lương"
-        },
-        "month": {
-          "type": "number",
-          "description": "Tháng"
-        },
-        "year": {
-          "type": "number",
-          "description": "Năm"
-        },
-        "title": {
-          "type": "string",
-          "description": "Tiêu đề kỳ lương"
-        },
-        "companyName": {
-          "type": "string",
-          "description": "Tên công ty"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "Thời gian cập nhật"
-        }
+        "id": { "type": "string" },
+        "month": { "type": "number" },
+        "year": { "type": "number" },
+        "title": { "type": "string" },
+        "companyName": { "type": "string" },
+        "updatedAt": { "type": "string" }
       },
       "required": ["id", "month", "year"]
+    },
+    "CompanyProfile": {
+      "title": "CompanyProfile",
+      "description": "Thông tin pháp nhân doanh nghiệp và cấu hình bảo hiểm, thuế chuẩn",
+      "type": "object",
+      "properties": {
+        "companyName": { "type": "string" },
+        "companyAddress": { "type": "string" },
+        "taxCode": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    "EmployeeMaster": {
+      "title": "EmployeeMaster",
+      "description": "Hồ sơ nhân sự tổng thể của doanh nghiệp (Mã NV, Họ tên, BHXH, HĐLĐ)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "code": { "type": "string" },
+        "fullName": { "type": "string" }
+      },
+      "required": ["id", "code", "fullName"]
+    },
+    "ProductMaster": {
+      "title": "ProductMaster",
+      "description": "Danh mục sản phẩm và đơn giá gia công sản phẩm",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "code": { "type": "string" },
+        "name": { "type": "string" },
+        "unitPrice": { "type": "number" }
+      },
+      "required": ["id", "code", "name"]
     }
   },
   "firestore": {
     "/payroll_periods/{periodId}": {
       "schema": "PayrollPeriod",
-      "description": "Tập hợp các kỳ bảng lương trực tuyến vĩnh viễn"
+      "description": "Lưu trữ các kỳ bảng lương theo tháng/năm"
+    },
+    "/settings/{docId}": {
+      "schema": "CompanyProfile",
+      "description": "Lưu thông tin công ty và cấu hình chung"
+    },
+    "/employees_master/{employeeId}": {
+      "schema": "EmployeeMaster",
+      "description": "Danh mục nhân viên gốc toàn doanh nghiệp"
+    },
+    "/products_master/{productId}": {
+      "schema": "ProductMaster",
+      "description": "Danh mục đơn giá sản phẩm năng suất"
     }
   }
 }

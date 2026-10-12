@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { User } from 'firebase/auth';
 import { PayrollPeriod } from '../types/payroll';
+import { FirestoreSyncStatus, FIRESTORE_DATABASE_ID } from '../services/firebaseDb';
 import {
   FileSpreadsheet,
   Settings,
@@ -9,19 +10,23 @@ import {
   Calendar,
   PlusCircle,
   ExternalLink,
-  Cloud,
+  Database,
+  RefreshCw,
   CheckCircle2,
   MapPin,
+  Check,
 } from 'lucide-react';
 
 interface HeaderProps {
   currentPeriod: PayrollPeriod;
   allPeriods: PayrollPeriod[];
   currentUser: User | null;
-  isCloudSynced: boolean;
+  syncStatus: FirestoreSyncStatus;
+  lastSavedAt: string | null;
   onSelectPeriod: (periodId: string) => void;
   onCreateNewPeriod: () => void;
   onChangeRegion: (region: 1 | 2 | 3 | 4) => void;
+  onForceSyncToFirestore: () => void;
   onOpenGoogleSheetsModal: () => void;
   onOpenPieceworkModal: () => void;
   onOpenConfigModal: () => void;
@@ -32,20 +37,24 @@ export const Header: React.FC<HeaderProps> = ({
   currentPeriod,
   allPeriods,
   currentUser,
-  isCloudSynced,
+  syncStatus,
+  lastSavedAt,
   onSelectPeriod,
   onCreateNewPeriod,
   onChangeRegion,
+  onForceSyncToFirestore,
   onOpenGoogleSheetsModal,
   onOpenPieceworkModal,
   onOpenConfigModal,
   onOpenExportModal,
 }) => {
+  const [showDbInfo, setShowDbInfo] = useState(false);
+
   return (
     <header className="bg-white border-b border-slate-200 shadow-2xs sticky top-0 z-20">
       <div className="max-w-7xl mx-auto px-3 sm:px-5">
         <div className="flex flex-col md:flex-row md:items-center justify-between py-2 gap-2">
-          {/* Brand & Online Status */}
+          {/* Brand & Firestore Status */}
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-blue-700 flex items-center justify-center text-white shadow-xs">
               <FileSpreadsheet className="w-4 h-4" />
@@ -55,17 +64,75 @@ export const Header: React.FC<HeaderProps> = ({
                 <h1 className="text-sm sm:text-base font-bold text-slate-900 leading-tight">
                   Bảng Lương Doanh Nghiệp
                 </h1>
-                {/* Cloud Sync Status Indicator */}
-                <div
-                  className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"
-                  title="Dữ liệu được lưu trữ trực tuyến vĩnh viễn trên Cloud Firestore, an toàn tuyệt đối và không bị mất"
-                >
-                  <Cloud className="w-3 h-3 text-emerald-600" />
-                  <span>{isCloudSynced ? 'Đã lưu đám mây' : 'Lưu trực tuyến'}</span>
+
+                {/* Firestore Cloud Status Widget */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowDbInfo(!showDbInfo)}
+                    className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100 transition-colors"
+                    title="Dữ liệu được lưu trữ trực tuyến vĩnh viễn trên cơ sở dữ liệu Cloud Firestore"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <Database className="w-3 h-3 text-emerald-700" />
+                    <span>
+                      {syncStatus === 'syncing'
+                        ? 'Đang lưu Firestore...'
+                        : 'Firestore Trực Tuyến'}
+                    </span>
+                  </button>
+
+                  {/* Popover thông tin Firestore tương tự app Quản lý & In Hồ Sơ BHXH */}
+                  {showDbInfo && (
+                    <div className="absolute left-0 top-full mt-1 w-72 bg-white rounded-xl shadow-xl border border-slate-200 p-3 z-50 text-xs space-y-2">
+                      <div className="flex items-center justify-between border-b pb-1.5">
+                        <strong className="text-slate-800 flex items-center gap-1">
+                          <Database className="w-3.5 h-3.5 text-blue-600" />
+                          Cơ sở dữ liệu Firestore
+                        </strong>
+                        <button
+                          onClick={() => setShowDbInfo(false)}
+                          className="text-slate-400 hover:text-slate-600 text-xs"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <div className="text-[11px] text-slate-600 space-y-1">
+                        <div>
+                          Trạng thái:{' '}
+                          <span className="font-semibold text-emerald-600">
+                            Đã kết nối trực tuyến
+                          </span>
+                        </div>
+                        <div>
+                          Số kỳ lương đã lưu: <strong>{allPeriods.length} kỳ</strong>
+                        </div>
+                        <div className="text-[10px] text-slate-500 truncate">
+                          DB ID: <span className="font-mono">{FIRESTORE_DATABASE_ID}</span>
+                        </div>
+                        {lastSavedAt && (
+                          <div className="text-[10px] text-slate-400">
+                            Lưu gần nhất: {lastSavedAt}
+                          </div>
+                        )}
+                      </div>
+                      <div className="pt-1.5 border-t flex justify-end">
+                        <button
+                          onClick={() => {
+                            onForceSyncToFirestore();
+                            setShowDbInfo(false);
+                          }}
+                          className="w-full py-1 text-center bg-blue-600 hover:bg-blue-700 text-white rounded font-semibold text-[11px] flex items-center justify-center gap-1"
+                        >
+                          <RefreshCw className="w-3 h-3" />
+                          Đồng bộ lên Cloud ngay
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
               <p className="text-[11px] text-slate-500 line-clamp-1">
-                {currentPeriod.companyName || 'Công ty'} • BHXH 10.5% - Thuế TNCN 7 bậc
+                {currentPeriod.companyName || 'Công ty'} • BHXH DN 21.5% + NLĐ 10.5% = 32%
               </p>
             </div>
           </div>

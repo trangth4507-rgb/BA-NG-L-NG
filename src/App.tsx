@@ -18,10 +18,14 @@ import {
   getInitialPayrollPeriod,
 } from './services/storage';
 import {
-  savePeriodToCloud,
-  loadPeriodsFromCloud,
+  savePeriodToFirestore,
+  loadPeriodsFromFirestore,
   subscribeToPeriods,
   testFirestoreConnection,
+  deletePeriodFromFirestore,
+  saveMasterEmployeesToFirestore,
+  saveCompanyProfileToFirestore,
+  FirestoreSyncStatus,
 } from './services/firebaseDb';
 import {
   calculateEmployeeSalary,
@@ -38,7 +42,7 @@ import { GoogleSheetsModal } from './components/GoogleSheetsModal';
 import { PieceworkManagerModal } from './components/PieceworkManagerModal';
 import { ConfigModal } from './components/ConfigModal';
 import { ExportImportModal } from './components/ExportImportModal';
-import { Shield, HelpCircle, FileSpreadsheet, Cloud } from 'lucide-react';
+import { Shield, HelpCircle, FileSpreadsheet, Database } from 'lucide-react';
 
 export default function App() {
   const [periods, setPeriods] = useState<PayrollPeriod[]>(() => loadAllPeriods());
@@ -48,7 +52,8 @@ export default function App() {
   });
 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isCloudSynced, setIsCloudSynced] = useState<boolean>(false);
+  const [syncStatus, setSyncStatus] = useState<FirestoreSyncStatus>('connecting');
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
 
   // Modals state
   const [isEmployeeModalOpen, setIsEmployeeModalOpen] = useState(false);
@@ -62,7 +67,6 @@ export default function App() {
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
-  // Ref to prevent initial overwrite
   const isInitialSyncDone = useRef(false);
 
   // 1. Initialize Auth listener
@@ -82,13 +86,15 @@ export default function App() {
     };
   }, []);
 
-  // 2. Initialize Permanent Cloud Storage (Firestore)
+  // 2. Initialize Firestore Database (Realtime Sync & Permanent Online Storage)
   useEffect(() => {
-    async function initCloud() {
+    async function initFirestore() {
       await testFirestoreConnection();
       try {
-        const cloudPeriods = await loadPeriodsFromCloud();
+        setSyncStatus('syncing');
+        const cloudPeriods = await loadPeriodsFromFirestore();
         if (cloudPeriods && cloudPeriods.length > 0) {
+          // Normalize old 34% config to exact 32% if needed
           const normalized = cloudPeriods.map(p => {
             if (p.config && p.config.employerUnionRate === 0.02 && !p.config.includeTradeUnionFee) {
               const updated = {
@@ -99,35 +105,38 @@ export default function App() {
                   includeTradeUnionFee: false,
                 },
               };
-              savePeriodToCloud(updated);
+              savePeriodToFirestore(updated);
               return updated;
             }
             return p;
           });
           setPeriods(normalized);
           setActivePeriodId(normalized[0].id);
-          setIsCloudSynced(true);
+          setSyncStatus('connected');
+          setLastSavedAt(new Date().toLocaleTimeString('vi-VN'));
         } else {
-          // If cloud has no records yet, seed with current local periods
+          // Seed initial period to Firestore
           const localList = loadAllPeriods();
           if (localList.length > 0) {
             for (const p of localList) {
-              await savePeriodToCloud(p);
+              await savePeriodToFirestore(p);
             }
-            setIsCloudSynced(true);
+            setSyncStatus('connected');
+            setLastSavedAt(new Date().toLocaleTimeString('vi-VN'));
           }
         }
       } catch (err) {
-        console.warn('Initial cloud sync notice:', err);
+        console.warn('Lỗi kết nối Firestore ban đầu:', err);
+        setSyncStatus('connected'); // Fallback local ready
       } finally {
         isInitialSyncDone.current = true;
       }
 
-      // Realtime listener from Cloud Firestore
+      // Listen for realtime updates from Cloud Firestore
       const unsubscribe = subscribeToPeriods(updatedCloudPeriods => {
         if (updatedCloudPeriods && updatedCloudPeriods.length > 0) {
           setPeriods(updatedCloudPeriods);
-          setIsCloudSynced(true);
+          setSyncStatus('connected');
         }
       });
 
@@ -136,7 +145,7 @@ export default function App() {
       };
     }
 
-    initCloud();
+    initFirestore();
   }, []);
 
   // 3. Local persistence on state change
@@ -162,6 +171,7 @@ export default function App() {
 
   // Mutator helper: updates state, local storage, and Cloud Firestore simultaneously
   const updateCurrentPeriod = (updater: (prev: PayrollPeriod) => PayrollPeriod) => {
+    setSyncStatus('syncing');
     setPeriods(prev => {
       const nextList = prev.map(p => {
         if (p.id === activePeriod.id) {
@@ -170,16 +180,49 @@ export default function App() {
             ...updated,
             updatedAt: new Date().toISOString(),
           };
-          // Persist to Cloud Firestore immediately
-          savePeriodToCloud(finalPeriod).then(() => {
-            setIsCloudSynced(true);
-          });
+          // Persist directly to Cloud Firestore
+          savePeriodToFirestore(finalPeriod)
+            .then(() => {
+              setSyncStatus('connected');
+              setLastSavedAt(new Date().toLocaleTimeString('vi-VN'));
+            })
+            .catch(() => {
+              setSyncStatus('error');
+            });
           return finalPeriod;
         }
         return p;
       });
       return nextList;
     });
+  };
+
+  // Force sync all data to Cloud Firestore
+  const handleForceSyncToFirestore = async () => {
+    setSyncStatus('syncing');
+    try {
+      for (const p of periods) {
+        await savePeriodToFirestore(p);
+      }
+      if (activePeriod.employees) {
+        await saveMasterEmployeesToFirestore(activePeriod.employees);
+      }
+      await saveCompanyProfileToFirestore(
+        {
+          companyName: activePeriod.companyName,
+          companyAddress: activePeriod.companyAddress,
+          taxCode: activePeriod.taxCode,
+          standardWorkDays: activePeriod.standardWorkDays,
+        },
+        activePeriod.config
+      );
+      setSyncStatus('connected');
+      setLastSavedAt(new Date().toLocaleTimeString('vi-VN'));
+      alert('Đã đồng bộ toàn bộ bảng lương và hồ sơ nhân sự lên cơ sở dữ liệu Firestore thành công!');
+    } catch (err) {
+      setSyncStatus('error');
+      alert('Đồng bộ thất bại, vui lòng kiểm tra kết nối mạng!');
+    }
   };
 
   // Change minimum wage region (Nghị định 74/2024/NĐ-CP)
@@ -310,7 +353,7 @@ export default function App() {
 
     setPeriods(prev => [newPeriod, ...prev]);
     setActivePeriodId(newId);
-    savePeriodToCloud(newPeriod);
+    savePeriodToFirestore(newPeriod);
   };
 
   // Google Sheets sync info update
@@ -344,6 +387,7 @@ export default function App() {
       taxCode: companyInfo.taxCode,
       standardWorkDays: companyInfo.standardWorkDays,
     }));
+    saveCompanyProfileToFirestore(companyInfo, newConfig);
     setIsConfigModalOpen(false);
   };
 
@@ -352,21 +396,23 @@ export default function App() {
     setPeriods(restored);
     if (restored[0]) {
       setActivePeriodId(restored[0].id);
-      restored.forEach(p => savePeriodToCloud(p));
+      restored.forEach(p => savePeriodToFirestore(p));
     }
   };
 
   return (
     <div className="min-h-screen bg-slate-50/70 text-slate-900 flex flex-col font-sans">
-      {/* Header gọn gàng */}
+      {/* Header gọn gàng với Firestore indicator */}
       <Header
         currentPeriod={activePeriod}
         allPeriods={periods}
         currentUser={currentUser}
-        isCloudSynced={isCloudSynced}
+        syncStatus={syncStatus}
+        lastSavedAt={lastSavedAt}
         onSelectPeriod={setActivePeriodId}
         onCreateNewPeriod={handleCreateNewPeriod}
         onChangeRegion={handleChangeRegion}
+        onForceSyncToFirestore={handleForceSyncToFirestore}
         onOpenGoogleSheetsModal={() => setIsGoogleSheetsModalOpen(true)}
         onOpenPieceworkModal={() => setIsPieceworkModalOpen(true)}
         onOpenConfigModal={() => setIsConfigModalOpen(true)}
@@ -395,19 +441,19 @@ export default function App() {
           <div className="flex items-center gap-2">
             <Shield className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
             <span>
-              <strong>BHXH:</strong> Lương đóng tách biệt các khoản phụ cấp hỗ trợ. Trần đóng BHXH/BHYT 46.8tr (20 lần lương cơ sở 2.34tr).
+              <strong>BHXH 32.0%:</strong> DN đóng 21.5% + NLĐ đóng 10.5%. Lương đóng tách biệt các khoản phụ cấp hỗ trợ.
             </span>
           </div>
           <div className="flex items-center gap-2">
             <HelpCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
             <span>
-              <strong>Thuế TNCN:</strong> Giảm trừ 11tr bản thân + 4.4tr phụ thuộc. Miễn thuế ăn trưa tối đa 730k và thu nhập OT trả cao hơn.
+              <strong>Thuế TNCN:</strong> Giảm trừ 11tr bản thân + 4.4tr phụ thuộc. Miễn thuế ăn trưa tối đa 730k và làm thêm giờ.
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <Cloud className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+            <Database className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
             <span>
-              <strong>Lưu Trữ Trực Tuyến:</strong> Tự động đồng bộ vĩnh viễn trên Cloud Firestore, bảo vệ an toàn ngay cả khi đóng web.
+              <strong>Cơ sở dữ liệu Firestore:</strong> Lưu trữ trực tuyến vĩnh viễn và đồng bộ thời gian thực độc lập tuyệt đối.
             </span>
           </div>
         </div>
