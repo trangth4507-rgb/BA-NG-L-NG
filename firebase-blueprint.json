@@ -1,0 +1,42 @@
+{
+  "entities": {
+    "PayrollPeriod": {
+      "title": "PayrollPeriod",
+      "description": "Bảng lương kỳ của doanh nghiệp lưu trữ trực tuyến vĩnh viễn",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID kỳ lương"
+        },
+        "month": {
+          "type": "number",
+          "description": "Tháng"
+        },
+        "year": {
+          "type": "number",
+          "description": "Năm"
+        },
+        "title": {
+          "type": "string",
+          "description": "Tiêu đề kỳ lương"
+        },
+        "companyName": {
+          "type": "string",
+          "description": "Tên công ty"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Thời gian cập nhật"
+        }
+      },
+      "required": ["id", "month", "year"]
+    }
+  },
+  "firestore": {
+    "/payroll_periods/{periodId}": {
+      "schema": "PayrollPeriod",
+      "description": "Tập hợp các kỳ bảng lương trực tuyến vĩnh viễn"
+    }
+  }
+}

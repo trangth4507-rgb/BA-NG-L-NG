@@ -1,0 +1,6 @@
+{
+  "name": "Bảng Lương Doanh Nghiệp Tự Động (Payroll & PIT)",
+  "description": "Phần mềm quản lý và tự động tính bảng lương, trích đóng BHXH, tính thuế thu nhập cá nhân (TNCN), lương sản phẩm, phụ cấp không đóng BHXH, xuất phiếu lương chi tiết và đồng bộ Google Sheets lưu trữ vĩnh viễn.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
