@@ -57,6 +57,16 @@ export interface Employee {
   bankAccount?: string;
   bankName?: string;
   note?: string;
+  // Các trường hồ sơ nhân sự (HR Master)
+  gender?: 'Nam' | 'Nữ';
+  birthDate?: string;
+  idCard?: string; // Số CCCD / CMND
+  idCardDate?: string; // Ngày cấp CCCD
+  socialInsuranceBookNumber?: string; // Mã số sổ BHXH (10 chữ số)
+  contractType?: 'HĐ Không xác định thời hạn' | 'HĐ Xác định thời hạn' | 'HĐ Thử việc' | 'HĐ Thời vụ/Khoán';
+  startDate?: string; // Ngày vào làm việc
+  status?: 'active' | 'probation' | 'leave' | 'terminated'; // Trạng thái làm việc
+  address?: string; // Địa chỉ thường trú / liên hệ
 }
 
 export interface TaxInsuranceConfig {

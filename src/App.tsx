@@ -36,6 +36,7 @@ import { initAuth, setCachedAccessToken } from './services/auth';
 import { Header } from './components/Header';
 import { SummaryCards } from './components/SummaryCards';
 import { PayrollTable } from './components/PayrollTable';
+import { EmployeeDirectory } from './components/EmployeeDirectory';
 import { EmployeeModal } from './components/EmployeeModal';
 import { PayslipModal } from './components/PayslipModal';
 import { GoogleSheetsModal } from './components/GoogleSheetsModal';
@@ -50,6 +51,8 @@ export default function App() {
     const list = loadAllPeriods();
     return list[0]?.id || 'period_default';
   });
+
+  const [activeMainTab, setActiveMainTab] = useState<'payroll' | 'employees'>('payroll');
 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [syncStatus, setSyncStatus] = useState<FirestoreSyncStatus>('connecting');
@@ -287,17 +290,38 @@ export default function App() {
       } else {
         updatedList = [...prev.employees, savedEmp];
       }
+      saveMasterEmployeesToFirestore(updatedList);
       return { ...prev, employees: updatedList };
     });
     setIsEmployeeModalOpen(false);
   };
 
   const handleDeleteEmployee = (employeeId: string) => {
-    if (confirm('Bạn có chắc chắn muốn xóa nhân viên này khỏi bảng lương?')) {
-      updateCurrentPeriod(prev => ({
-        ...prev,
-        employees: prev.employees.filter(e => e.id !== employeeId),
-      }));
+    if (confirm('Bạn có chắc chắn muốn xóa nhân viên này khỏi hệ thống?')) {
+      updateCurrentPeriod(prev => {
+        const updatedList = prev.employees.filter(e => e.id !== employeeId);
+        saveMasterEmployeesToFirestore(updatedList);
+        return {
+          ...prev,
+          employees: updatedList,
+        };
+      });
+    }
+  };
+
+  const handleSyncPersonnelToCurrentPayroll = async () => {
+    setSyncStatus('syncing');
+    try {
+      if (activePeriod.employees && activePeriod.employees.length > 0) {
+        await saveMasterEmployeesToFirestore(activePeriod.employees);
+        await savePeriodToFirestore(activePeriod);
+      }
+      setSyncStatus('connected');
+      setLastSavedAt(new Date().toLocaleTimeString('vi-VN'));
+      alert('Đã đồng bộ toàn bộ danh mục nhân sự và bảng lương lên Cloud Firestore!');
+    } catch {
+      setSyncStatus('error');
+      alert('Đồng bộ thất bại, vui lòng kiểm tra kết nối mạng!');
     }
   };
 
@@ -409,6 +433,9 @@ export default function App() {
         currentUser={currentUser}
         syncStatus={syncStatus}
         lastSavedAt={lastSavedAt}
+        activeMainTab={activeMainTab}
+        allEmployeesCount={activePeriod.employees?.length || 0}
+        onChangeMainTab={setActiveMainTab}
         onSelectPeriod={setActivePeriodId}
         onCreateNewPeriod={handleCreateNewPeriod}
         onChangeRegion={handleChangeRegion}
@@ -421,42 +448,55 @@ export default function App() {
 
       {/* Main Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-5 py-3.5 space-y-3">
-        {/* KPI Summaries & Statutory Info Bar */}
-        <SummaryCards calculatedRows={calculatedRows} config={activePeriod.config} />
+        {activeMainTab === 'payroll' ? (
+          <>
+            {/* KPI Summaries & Statutory Info Bar */}
+            <SummaryCards calculatedRows={calculatedRows} config={activePeriod.config} />
 
-        {/* Dense Responsive Data Table */}
-        <PayrollTable
-          calculatedRows={calculatedRows}
-          onSelectPayslip={handleOpenPayslip}
-          onEditEmployee={handleOpenEditEmployee}
-          onDeleteEmployee={handleDeleteEmployee}
-          onAddNewEmployee={handleOpenAddEmployee}
-          onQuickUpdateWorkDays={handleQuickUpdateWorkDays}
-          onQuickUpdateBonus={handleQuickUpdateBonus}
-          onQuickUpdateAdvance={handleQuickUpdateAdvance}
-        />
+            {/* Dense Responsive Data Table */}
+            <PayrollTable
+              calculatedRows={calculatedRows}
+              onSelectPayslip={handleOpenPayslip}
+              onEditEmployee={handleOpenEditEmployee}
+              onDeleteEmployee={handleDeleteEmployee}
+              onAddNewEmployee={handleOpenAddEmployee}
+              onQuickUpdateWorkDays={handleQuickUpdateWorkDays}
+              onQuickUpdateBonus={handleQuickUpdateBonus}
+              onQuickUpdateAdvance={handleQuickUpdateAdvance}
+            />
 
-        {/* Footnote Guide */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-[11px] text-slate-500 bg-white p-3 rounded-xl border border-slate-200">
-          <div className="flex items-center gap-2">
-            <Shield className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-            <span>
-              <strong>BHXH 32.0%:</strong> DN đóng 21.5% + NLĐ đóng 10.5%. Lương đóng tách biệt các khoản phụ cấp hỗ trợ.
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <HelpCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-            <span>
-              <strong>Thuế TNCN:</strong> Giảm trừ 11tr bản thân + 4.4tr phụ thuộc. Miễn thuế ăn trưa tối đa 730k và làm thêm giờ.
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Database className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-            <span>
-              <strong>Cơ sở dữ liệu Firestore:</strong> Lưu trữ trực tuyến vĩnh viễn và đồng bộ thời gian thực độc lập tuyệt đối.
-            </span>
-          </div>
-        </div>
+            {/* Footnote Guide */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-[11px] text-slate-500 bg-white p-3 rounded-xl border border-slate-200">
+              <div className="flex items-center gap-2">
+                <Shield className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                <span>
+                  <strong>BHXH 32.0%:</strong> DN đóng 21.5% + NLĐ đóng 10.5%. Lương đóng tách biệt các khoản phụ cấp hỗ trợ.
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <HelpCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                <span>
+                  <strong>Thuế TNCN:</strong> Giảm trừ 11tr bản thân + 4.4tr phụ thuộc. Miễn thuế ăn trưa tối đa 730k và làm thêm giờ.
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Database className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span>
+                  <strong>Cơ sở dữ liệu Firestore:</strong> Lưu trữ trực tuyến vĩnh viễn và đồng bộ thời gian thực độc lập tuyệt đối.
+                </span>
+              </div>
+            </div>
+          </>
+        ) : (
+          <EmployeeDirectory
+            employees={activePeriod.employees || []}
+            config={activePeriod.config}
+            onAddEmployee={handleOpenAddEmployee}
+            onEditEmployee={handleOpenEditEmployee}
+            onDeleteEmployee={handleDeleteEmployee}
+            onSyncToCurrentPayroll={handleSyncPersonnelToCurrentPayroll}
+          />
+        )}
       </main>
 
       {/* Modals */}

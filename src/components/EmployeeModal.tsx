@@ -321,6 +321,112 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Giới tính
+                </label>
+                <select
+                  value={formData.gender || 'Nam'}
+                  onChange={e => setFormData({ ...formData, gender: e.target.value as 'Nam' | 'Nữ' })}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white"
+                >
+                  <option value="Nam">Nam</option>
+                  <option value="Nữ">Nữ</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Ngày sinh
+                </label>
+                <input
+                  type="date"
+                  value={formData.birthDate || ''}
+                  onChange={e => setFormData({ ...formData, birthDate: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Số CCCD / CMND
+                </label>
+                <input
+                  type="text"
+                  value={formData.idCard || ''}
+                  onChange={e => setFormData({ ...formData, idCard: e.target.value })}
+                  placeholder="12 chữ số CCCD"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Mã số sổ BHXH (10 chữ số)
+                </label>
+                <input
+                  type="text"
+                  value={formData.socialInsuranceBookNumber || ''}
+                  onChange={e => setFormData({ ...formData, socialInsuranceBookNumber: e.target.value })}
+                  placeholder="Mã số BHXH (10 số)"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono text-indigo-700 font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Loại hợp đồng lao động
+                </label>
+                <select
+                  value={formData.contractType || 'HĐ Không xác định thời hạn'}
+                  onChange={e =>
+                    setFormData({
+                      ...formData,
+                      contractType: e.target.value as Employee['contractType'],
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white"
+                >
+                  <option value="HĐ Không xác định thời hạn">HĐ Không xác định thời hạn</option>
+                  <option value="HĐ Xác định thời hạn">HĐ Xác định thời hạn (1 - 3 năm)</option>
+                  <option value="HĐ Thử việc">HĐ Thử việc</option>
+                  <option value="HĐ Thời vụ/Khoán">HĐ Thời vụ / Giao khoán</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Ngày vào làm việc
+                </label>
+                <input
+                  type="date"
+                  value={formData.startDate || ''}
+                  onChange={e => setFormData({ ...formData, startDate: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Trạng thái làm việc
+                </label>
+                <select
+                  value={formData.status || 'active'}
+                  onChange={e =>
+                    setFormData({
+                      ...formData,
+                      status: e.target.value as Employee['status'],
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white"
+                >
+                  <option value="active">Chính thức (Đang làm việc)</option>
+                  <option value="probation">Thử việc</option>
+                  <option value="leave">Nghỉ chế độ / Thai sản</option>
+                  <option value="terminated">Đã thôi việc</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Số tài khoản ngân hàng
                 </label>
                 <input
@@ -328,7 +434,7 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
                   value={formData.bankAccount || ''}
                   onChange={e => setFormData({ ...formData, bankAccount: e.target.value })}
                   placeholder="Số tài khoản"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono"
                 />
               </div>
 
@@ -341,7 +447,20 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
                   value={formData.bankName || ''}
                   onChange={e => setFormData({ ...formData, bankName: e.target.value })}
                   placeholder="Vietcombank, Techcombank, MB Bank..."
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Địa chỉ thường trú / Nơi ở hiện tại
+                </label>
+                <input
+                  type="text"
+                  value={formData.address || ''}
+                  onChange={e => setFormData({ ...formData, address: e.target.value })}
+                  placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố..."
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
                 />
               </div>
             </div>

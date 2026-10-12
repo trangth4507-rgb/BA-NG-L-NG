@@ -14,7 +14,7 @@ import {
   RefreshCw,
   CheckCircle2,
   MapPin,
-  Check,
+  Users,
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -23,6 +23,9 @@ interface HeaderProps {
   currentUser: User | null;
   syncStatus: FirestoreSyncStatus;
   lastSavedAt: string | null;
+  activeMainTab: 'payroll' | 'employees';
+  allEmployeesCount: number;
+  onChangeMainTab: (tab: 'payroll' | 'employees') => void;
   onSelectPeriod: (periodId: string) => void;
   onCreateNewPeriod: () => void;
   onChangeRegion: (region: 1 | 2 | 3 | 4) => void;
@@ -39,6 +42,9 @@ export const Header: React.FC<HeaderProps> = ({
   currentUser,
   syncStatus,
   lastSavedAt,
+  activeMainTab,
+  allEmployeesCount,
+  onChangeMainTab,
   onSelectPeriod,
   onCreateNewPeriod,
   onChangeRegion,
@@ -81,7 +87,7 @@ export const Header: React.FC<HeaderProps> = ({
                     </span>
                   </button>
 
-                  {/* Popover thông tin Firestore tương tự app Quản lý & In Hồ Sơ BHXH */}
+                  {/* Popover thông tin Firestore */}
                   {showDbInfo && (
                     <div className="absolute left-0 top-full mt-1 w-72 bg-white rounded-xl shadow-xl border border-slate-200 p-3 z-50 text-xs space-y-2">
                       <div className="flex items-center justify-between border-b pb-1.5">
@@ -137,6 +143,32 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
+          {/* Navigation Tabs (Bảng Lương vs Hồ Sơ Nhân Sự) */}
+          <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 shrink-0">
+            <button
+              onClick={() => onChangeMainTab('payroll')}
+              className={`px-3 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+                activeMainTab === 'payroll'
+                  ? 'bg-white text-blue-700 shadow-2xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5 text-blue-600" />
+              <span>Bảng Lương Tháng</span>
+            </button>
+            <button
+              onClick={() => onChangeMainTab('employees')}
+              className={`px-3 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+                activeMainTab === 'employees'
+                  ? 'bg-white text-blue-700 shadow-2xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Hồ Sơ Nhân Sự ({allEmployeesCount})</span>
+            </button>
+          </div>
+
           {/* Quick Toolbar */}
           <div className="flex flex-wrap items-center gap-1.5 text-xs">
             {/* Vùng Lương Tối Thiểu (NĐ 74/2024/NĐ-CP) */}
@@ -156,28 +188,30 @@ export const Header: React.FC<HeaderProps> = ({
               </select>
             </div>
 
-            {/* Period Selector */}
-            <div className="flex items-center gap-1 bg-slate-100 px-2 py-1 rounded-lg border border-slate-200">
-              <Calendar className="w-3.5 h-3.5 text-slate-500" />
-              <select
-                value={currentPeriod.id}
-                onChange={e => onSelectPeriod(e.target.value)}
-                className="bg-transparent text-[11px] font-bold text-slate-800 pr-1 py-0.5 focus:outline-hidden cursor-pointer"
-              >
-                {allPeriods.map(p => (
-                  <option key={p.id} value={p.id}>
-                    Tháng {p.month}/{p.year}
-                  </option>
-                ))}
-              </select>
-              <button
-                onClick={onCreateNewPeriod}
-                className="p-0.5 text-blue-600 hover:text-blue-800 rounded transition-colors"
-                title="Tạo kỳ lương mới"
-              >
-                <PlusCircle className="w-3.5 h-3.5" />
-              </button>
-            </div>
+            {/* Period Selector (chỉ hiện khi xem Bảng Lương) */}
+            {activeMainTab === 'payroll' && (
+              <div className="flex items-center gap-1 bg-slate-100 px-2 py-1 rounded-lg border border-slate-200">
+                <Calendar className="w-3.5 h-3.5 text-slate-500" />
+                <select
+                  value={currentPeriod.id}
+                  onChange={e => onSelectPeriod(e.target.value)}
+                  className="bg-transparent text-[11px] font-bold text-slate-800 pr-1 py-0.5 focus:outline-hidden cursor-pointer"
+                >
+                  {allPeriods.map(p => (
+                    <option key={p.id} value={p.id}>
+                      Tháng {p.month}/{p.year}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  onClick={onCreateNewPeriod}
+                  className="p-0.5 text-blue-600 hover:text-blue-800 rounded transition-colors"
+                  title="Tạo kỳ lương mới"
+                >
+                  <PlusCircle className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
 
             {/* Google Sheets Trigger */}
             <button
@@ -187,7 +221,7 @@ export const Header: React.FC<HeaderProps> = ({
                   ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
                   : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
               }`}
-              title="Đồng bộ xuất sang Google Sheets (tùy chọn chia sẻ)"
+              title="Đồng bộ xuất sang Google Sheets"
             >
               <FileSpreadsheet
                 className={`w-3.5 h-3.5 ${
