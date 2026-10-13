@@ -42,7 +42,7 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ calculatedRows, conf
               {formatVND(summary.totalGross)}
             </div>
             <div className="text-[11px] text-slate-500">
-              Lương SP: <strong className="text-blue-600">{formatVND(summary.totalPiecework)}</strong>
+              Phụ cấp: <strong className="text-blue-600">{formatVND(summary.totalAllowances)}</strong> • Tăng ca: <strong className="text-slate-700">{formatVND(summary.totalOvertime)}</strong>
             </div>
           </div>
           <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">

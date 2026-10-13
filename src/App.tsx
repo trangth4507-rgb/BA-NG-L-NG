@@ -40,7 +40,6 @@ import { EmployeeDirectory } from './components/EmployeeDirectory';
 import { EmployeeModal } from './components/EmployeeModal';
 import { PayslipModal } from './components/PayslipModal';
 import { GoogleSheetsModal } from './components/GoogleSheetsModal';
-import { PieceworkManagerModal } from './components/PieceworkManagerModal';
 import { ConfigModal } from './components/ConfigModal';
 import { ExportImportModal } from './components/ExportImportModal';
 import { Shield, HelpCircle, FileSpreadsheet, Database, Users } from 'lucide-react';
@@ -52,7 +51,30 @@ export default function App() {
     return list[0]?.id || 'period_default';
   });
 
-  const [activeMainTab, setActiveMainTab] = useState<'payroll' | 'employees'>('payroll');
+  const [activeMainTab, setActiveMainTab] = useState<'payroll' | 'employees'>(() => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tabParam = urlParams.get('tab');
+      if (tabParam === 'employees' || tabParam === 'payroll') return tabParam;
+      const saved = localStorage.getItem('payroll_active_tab');
+      if (saved === 'employees' || saved === 'payroll') return saved;
+    } catch {
+      // ignore
+    }
+    return 'payroll';
+  });
+
+  const handleTabChange = (tab: 'payroll' | 'employees') => {
+    setActiveMainTab(tab);
+    try {
+      localStorage.setItem('payroll_active_tab', tab);
+      const url = new URL(window.location.href);
+      url.searchParams.set('tab', tab);
+      window.history.replaceState({}, '', url.toString());
+    } catch {
+      // ignore
+    }
+  };
 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [syncStatus, setSyncStatus] = useState<FirestoreSyncStatus>('connecting');
@@ -66,7 +88,6 @@ export default function App() {
   const [viewingPayslipRow, setViewingPayslipRow] = useState<CalculatedPayrollRow | null>(null);
 
   const [isGoogleSheetsModalOpen, setIsGoogleSheetsModalOpen] = useState(false);
-  const [isPieceworkModalOpen, setIsPieceworkModalOpen] = useState(false);
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
@@ -351,11 +372,7 @@ export default function App() {
       advancePayment: 0,
       otherDeductions: 0,
       overtime: { weekdayHours: 0, weekendHours: 0, holidayHours: 0 },
-      pieceworkItems: (e.pieceworkItems || []).map(p => ({
-        ...p,
-        quantity: 0,
-        total: 0,
-      })),
+      pieceworkItems: [],
     }));
 
     const newPeriod: PayrollPeriod = {
@@ -368,7 +385,7 @@ export default function App() {
       taxCode: activePeriod.taxCode,
       standardWorkDays: activePeriod.standardWorkDays,
       employees: clonedEmployees,
-      products: activePeriod.products,
+      products: [],
       config: activePeriod.config,
       status: 'draft',
       createdAt: new Date().toISOString(),
@@ -387,14 +404,6 @@ export default function App() {
       googleSpreadsheetId: sheetId,
       googleSpreadsheetUrl: sheetUrl,
       lastSyncedAt: new Date().toISOString(),
-    }));
-  };
-
-  // Piecework products update
-  const handleUpdateProducts = (updatedProducts: ProductItem[]) => {
-    updateCurrentPeriod(prev => ({
-      ...prev,
-      products: updatedProducts,
     }));
   };
 
@@ -435,13 +444,12 @@ export default function App() {
         lastSavedAt={lastSavedAt}
         activeMainTab={activeMainTab}
         allEmployeesCount={activePeriod.employees?.length || 0}
-        onChangeMainTab={setActiveMainTab}
+        onChangeMainTab={handleTabChange}
         onSelectPeriod={setActivePeriodId}
         onCreateNewPeriod={handleCreateNewPeriod}
         onChangeRegion={handleChangeRegion}
         onForceSyncToFirestore={handleForceSyncToFirestore}
         onOpenGoogleSheetsModal={() => setIsGoogleSheetsModalOpen(true)}
-        onOpenPieceworkModal={() => setIsPieceworkModalOpen(true)}
         onOpenConfigModal={() => setIsConfigModalOpen(true)}
         onOpenExportModal={() => setIsExportModalOpen(true)}
       />
@@ -451,8 +459,8 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-3 sm:px-5 py-2 flex flex-wrap items-center justify-between gap-2.5">
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setActiveMainTab('payroll')}
-              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
+              onClick={() => handleTabChange('payroll')}
+              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer ${
                 activeMainTab === 'payroll'
                   ? 'bg-blue-600 text-white shadow-sm ring-2 ring-blue-600/30'
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
@@ -463,8 +471,8 @@ export default function App() {
             </button>
 
             <button
-              onClick={() => setActiveMainTab('employees')}
-              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
+              onClick={() => handleTabChange('employees')}
+              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer ${
                 activeMainTab === 'employees'
                   ? 'bg-indigo-600 text-white shadow-sm ring-2 ring-indigo-600/30'
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
@@ -496,6 +504,35 @@ export default function App() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-5 py-3.5 space-y-3">
         {activeMainTab === 'payroll' ? (
           <>
+            {/* Quick Banner liên kết sang Bảng Hồ Sơ Nhân Sự */}
+            <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 rounded-xl p-3 text-white shadow-2xs flex flex-wrap items-center justify-between gap-3 border border-indigo-700/60">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-indigo-500/30 border border-indigo-400/40 text-indigo-200 flex items-center justify-center shrink-0">
+                  <Users className="w-5 h-5 text-indigo-300" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-xs sm:text-sm tracking-wide text-white">
+                      BẢNG HỒ SƠ NHÂN SỰ ĐỘI TÀU &amp; CẢNG BIỂN
+                    </span>
+                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-500 text-white">
+                      {activePeriod.employees?.length || 0} nhân sự
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-indigo-200/90 line-clamp-1">
+                    Thuyền viên, máy trưởng, thợ máy, lái cẩu, điều độ bến bãi • CCCD, chức danh, loại HĐLĐ, mức đóng BHXH 32%, giảm trừ người phụ thuộc.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => handleTabChange('employees')}
+                className="px-3.5 py-1.5 bg-indigo-500 hover:bg-indigo-400 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0"
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>Xem Bảng Hồ Sơ Nhân Sự →</span>
+              </button>
+            </div>
+
             {/* KPI Summaries & Statutory Info Bar */}
             <SummaryCards calculatedRows={calculatedRows} config={activePeriod.config} />
 
@@ -506,7 +543,7 @@ export default function App() {
               onEditEmployee={handleOpenEditEmployee}
               onDeleteEmployee={handleDeleteEmployee}
               onAddNewEmployee={handleOpenAddEmployee}
-              onSwitchToEmployeeDirectory={() => setActiveMainTab('employees')}
+              onSwitchToEmployeeDirectory={() => handleTabChange('employees')}
               onQuickUpdateWorkDays={handleQuickUpdateWorkDays}
               onQuickUpdateBonus={handleQuickUpdateBonus}
               onQuickUpdateAdvance={handleQuickUpdateAdvance}
@@ -542,6 +579,7 @@ export default function App() {
             onEditEmployee={handleOpenEditEmployee}
             onDeleteEmployee={handleDeleteEmployee}
             onSyncToCurrentPayroll={handleSyncPersonnelToCurrentPayroll}
+            onBackToPayroll={() => handleTabChange('payroll')}
           />
         )}
       </main>
@@ -580,18 +618,6 @@ export default function App() {
           }}
           onUpdatePeriodSyncInfo={handleUpdatePeriodSyncInfo}
           onClose={() => setIsGoogleSheetsModalOpen(false)}
-        />
-      )}
-
-      {isPieceworkModalOpen && (
-        <PieceworkManagerModal
-          products={activePeriod.products}
-          employees={activePeriod.employees}
-          onUpdateProducts={handleUpdateProducts}
-          onUpdateEmployeePiecework={emps =>
-            updateCurrentPeriod(prev => ({ ...prev, employees: emps }))
-          }
-          onClose={() => setIsPieceworkModalOpen(false)}
         />
       )}
 

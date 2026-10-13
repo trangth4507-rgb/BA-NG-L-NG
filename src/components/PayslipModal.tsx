@@ -36,10 +36,9 @@ Nhân viên: ${emp.fullName} (${emp.code}) - ${emp.department}
 ---
 1. Lương HĐLĐ: ${formatVND(emp.contractSalary)}
 2. Lương ngày công (${emp.actualWorkDays}/${emp.standardWorkDays} ngày): ${formatVND(row.workdaySalary)}
-3. Lương sản phẩm: ${formatVND(row.pieceworkSalary)}
-4. Lương làm thêm giờ (OT): ${formatVND(row.totalOvertimeSalary)}
-5. Phụ cấp hỗ trợ (không tính BHXH): ${formatVND(row.totalAllowances)}
-6. Thưởng: ${formatVND(row.bonus)}
+3. Lương làm thêm giờ & trực ca đêm/cảng (OT): ${formatVND(row.totalOvertimeSalary)}
+4. Phụ cấp đi tàu & hỗ trợ (không tính BHXH): ${formatVND(row.totalAllowances)}
+5. Thưởng chuyến / KPI: ${formatVND(row.bonus)}
 => TỔNG THU NHẬP (GROSS): ${formatVND(row.totalGrossIncome)}
 
 CÁC KHOẢN TRÍCH TRỪ:
@@ -201,30 +200,10 @@ CÁC KHOẢN TRÍCH TRỪ:
                   <span className="font-semibold text-slate-900">{formatVND(row.workdaySalary)}</span>
                 </div>
 
-                {/* Lương sản phẩm chi tiết */}
-                <div className="py-1">
-                  <div className="flex justify-between font-medium">
-                    <span className="text-blue-700">3. Lương sản phẩm / Năng suất:</span>
-                    <span className="font-semibold text-blue-700">{formatVND(row.pieceworkSalary)}</span>
-                  </div>
-                  {emp.pieceworkItems && emp.pieceworkItems.length > 0 && (
-                    <div className="mt-1 pl-3 text-[11px] text-slate-500 space-y-0.5 border-l-2 border-blue-200">
-                      {emp.pieceworkItems.map((p, i) => (
-                        <div key={i} className="flex justify-between">
-                          <span>
-                            • {p.productName} ({p.quantity} {p.unit} × {formatNumber(p.unitPrice)}đ):
-                          </span>
-                          <span>{formatVND(p.quantity * p.unitPrice)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Làm thêm giờ */}
+                {/* Làm thêm giờ / trực cảng */}
                 <div className="flex justify-between py-1">
                   <span className="text-slate-600">
-                    4. Tiền làm thêm giờ (OT):
+                    3. Tiền làm thêm giờ (OT) &amp; trực ca đêm/cảng:
                   </span>
                   <span className="font-medium">{formatVND(row.totalOvertimeSalary)}</span>
                 </div>
@@ -232,7 +211,7 @@ CÁC KHOẢN TRÍCH TRỪ:
                 {/* Phụ cấp hỗ trợ */}
                 <div className="py-1">
                   <div className="flex justify-between font-medium">
-                    <span className="text-slate-700">5. Các khoản phụ cấp hỗ trợ:</span>
+                    <span className="text-slate-700">4. Các khoản phụ cấp đi tàu &amp; hỗ trợ:</span>
                     <span className="font-semibold">{formatVND(row.totalAllowances)}</span>
                   </div>
                   <div className="mt-1 pl-3 text-[11px] text-slate-500 space-y-0.5 border-l-2 border-slate-200">
@@ -283,7 +262,7 @@ CÁC KHOẢN TRÍCH TRỪ:
 
                 {/* Thưởng */}
                 <div className="flex justify-between py-1">
-                  <span className="text-slate-600">6. Tiền thưởng / KPI:</span>
+                  <span className="text-slate-600">5. Tiền thưởng chuyến / KPI / an toàn:</span>
                   <span className="font-medium text-emerald-600">{formatVND(row.bonus)}</span>
                 </div>
               </div>

@@ -24,6 +24,7 @@ import {
   Mail,
   X,
   Printer,
+  ArrowLeft,
 } from 'lucide-react';
 
 interface EmployeeDirectoryProps {
@@ -33,6 +34,7 @@ interface EmployeeDirectoryProps {
   onEditEmployee: (employee: Employee) => void;
   onDeleteEmployee: (employeeId: string) => void;
   onSyncToCurrentPayroll: () => void;
+  onBackToPayroll?: () => void;
 }
 
 export const EmployeeDirectory: React.FC<EmployeeDirectoryProps> = ({
@@ -42,6 +44,7 @@ export const EmployeeDirectory: React.FC<EmployeeDirectoryProps> = ({
   onEditEmployee,
   onDeleteEmployee,
   onSyncToCurrentPayroll,
+  onBackToPayroll,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [deptFilter, setDeptFilter] = useState('ALL');
@@ -203,6 +206,30 @@ export const EmployeeDirectory: React.FC<EmployeeDirectoryProps> = ({
 
   return (
     <div className="space-y-3">
+      {/* Thanh điều hướng nhanh trở lại Bảng Lương */}
+      {onBackToPayroll && (
+        <div className="flex flex-wrap items-center justify-between gap-2.5 bg-gradient-to-r from-indigo-900 to-slate-900 text-white px-4 py-2.5 rounded-xl border border-indigo-700/60 shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <div>
+              <span className="text-xs font-bold tracking-wide uppercase">
+                DANH BẠ HỒ SƠ NHÂN SỰ & QUẢN LÝ LAO ĐỘNG
+              </span>
+              <span className="ml-2 text-[11px] font-semibold text-indigo-200">
+                ({metrics.total} nhân sự • Quỹ lương {formatVND(metrics.totalSalaryFund)})
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={onBackToPayroll}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer active:scale-95"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>← Quay Lại Bảng Lương Tháng</span>
+          </button>
+        </div>
+      )}
+
       {/* 4 Thẻ KPI Hồ Sơ Nhân Sự Gọn Gàng */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
         <div className="bg-white rounded-xl p-3 border border-slate-200/90 shadow-2xs flex items-center justify-between">

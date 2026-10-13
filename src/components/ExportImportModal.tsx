@@ -50,10 +50,9 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
         'Ngày công chuẩn',
         'Ngày công thực tế',
         'Lương ngày công',
-        'Lương sản phẩm',
         'Lương làm thêm (OT)',
-        'Phụ cấp hỗ trợ (không BHXH)',
-        'Thưởng KPI',
+        'Phụ cấp đi tàu & hỗ trợ',
+        'Thưởng chuyến/KPI',
         'TỔNG THU NHẬP (GROSS)',
         'Trích đóng BHXH/BHYT/BHTN (10.5%)',
         'Thuế TNCN',
@@ -77,7 +76,6 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
         r.employee.standardWorkDays as unknown as string,
         r.employee.actualWorkDays as unknown as string,
         r.workdaySalary as unknown as string,
-        r.pieceworkSalary as unknown as string,
         r.totalOvertimeSalary as unknown as string,
         r.totalAllowances as unknown as string,
         r.bonus as unknown as string,
@@ -95,44 +93,55 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
     const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
     XLSX.utils.book_append_sheet(wb, wsSummary, 'Bang_Luong_Tong_Hop');
 
-    // Sheet 2: Chi tiết lương sản phẩm
-    const pieceworkData = [
-      [`CHI TIẾT LƯƠNG SẢN PHẨM THÁNG ${period.month}/${period.year}`],
+    // Sheet 2: Chi tiết phụ cấp & làm thêm giờ
+    const allowanceData = [
+      [`CHI TIẾT PHỤ CẤP & TĂNG CA ĐI TÀU/CẢNG THÁNG ${period.month}/${period.year}`],
       [],
       [
         'STT',
         'Mã NV',
         'Họ và tên',
-        'Mã SP',
-        'Tên sản phẩm / Công đoạn',
-        'ĐVT',
-        'Đơn giá (VNĐ)',
-        'Số lượng hoàn thành',
-        'Thành tiền (VNĐ)',
+        'Phòng ban / Đội tàu',
+        'Chức vụ',
+        'Tiền ăn ca (VNĐ)',
+        'Đi tàu/Lưu bến (VNĐ)',
+        'Xăng xe/Đi lại (VNĐ)',
+        'Điện thoại (VNĐ)',
+        'Trách nhiệm (VNĐ)',
+        'Hỗ trợ khác (VNĐ)',
+        'Tổng Phụ Cấp (VNĐ)',
+        'OT ngày thường (h)',
+        'OT ngày nghỉ (h)',
+        'Lương OT làm thêm (VNĐ)',
+        'Thưởng chuyến / KPI (VNĐ)',
       ],
     ];
 
-    let pIdx = 1;
-    calculatedRows.forEach(r => {
-      if (r.employee.pieceworkItems && r.employee.pieceworkItems.length > 0) {
-        r.employee.pieceworkItems.forEach(item => {
-          pieceworkData.push([
-            (pIdx++) as unknown as string,
-            r.employee.code,
-            r.employee.fullName,
-            item.productId,
-            item.productName,
-            item.unit,
-            item.unitPrice as unknown as string,
-            item.quantity as unknown as string,
-            (item.quantity * item.unitPrice) as unknown as string,
-          ]);
-        });
-      }
+    calculatedRows.forEach((r, idx) => {
+      const al = r.employee.allowances;
+      const ot = r.employee.overtime;
+      allowanceData.push([
+        (idx + 1) as unknown as string,
+        r.employee.code,
+        r.employee.fullName,
+        r.employee.department,
+        r.employee.position,
+        (al.lunch || 0) as unknown as string,
+        (al.housing || 0) as unknown as string,
+        (al.transport || 0) as unknown as string,
+        (al.phone || 0) as unknown as string,
+        (al.otherTaxable || 0) as unknown as string,
+        (al.otherTaxFree || 0) as unknown as string,
+        r.totalAllowances as unknown as string,
+        (ot.weekdayHours || 0) as unknown as string,
+        (ot.weekendHours || 0) as unknown as string,
+        r.totalOvertimeSalary as unknown as string,
+        r.bonus as unknown as string,
+      ]);
     });
 
-    const wsPiecework = XLSX.utils.aoa_to_sheet(pieceworkData);
-    XLSX.utils.book_append_sheet(wb, wsPiecework, 'Luong_San_Pham');
+    const wsAllowance = XLSX.utils.aoa_to_sheet(allowanceData);
+    XLSX.utils.book_append_sheet(wb, wsAllowance, 'Phu_Cap_Va_Tang_Ca');
 
     // Write file
     const filename = `Bang_Luong_Thang_${period.month}_${period.year}.xlsx`;
@@ -227,7 +236,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
                   Xuất Bảng Lương Ra File Excel (.xlsx)
                 </h4>
                 <p className="text-slate-500 mt-0.5">
-                  Tạo file Excel gồm 2 trang tính: Bảng tổng hợp chi tiết và Bảng kê lương sản phẩm từng nhân viên. Thích hợp lưu trữ nội bộ hoặc nộp phòng kế toán.
+                  Tạo file Excel gồm 2 trang tính: Bảng tổng hợp lương chi tiết và Bảng kê chi tiết phụ cấp &amp; tăng ca đi tàu/cảng từng nhân viên. Thích hợp lưu trữ nội bộ hoặc nộp ban điều hành.
                 </p>
               </div>
             </div>
@@ -248,7 +257,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
                 Sao Lưu Dữ Liệu Vĩnh Viễn (Backup JSON)
               </h4>
               <p className="text-slate-500 mt-0.5">
-                Tải về toàn bộ cơ sở dữ liệu ({allPeriods.length} kỳ lương, nhân sự, đơn giá sản phẩm và cấu hình) thành 1 tệp tin JSON an toàn. Giúp bạn lưu trữ vĩnh viễn trên máy tính hoặc chuyển đổi máy làm việc.
+                Tải về toàn bộ cơ sở dữ liệu ({allPeriods.length} kỳ lương, hồ sơ nhân sự đội tàu &amp; cảng, cấu hình BHXH và thuế) thành 1 tệp tin JSON an toàn. Giúp bạn lưu trữ vĩnh viễn trên máy tính hoặc chuyển đổi máy làm việc.
               </p>
             </div>
             <button

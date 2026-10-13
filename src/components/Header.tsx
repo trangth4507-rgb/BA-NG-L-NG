@@ -31,7 +31,6 @@ interface HeaderProps {
   onChangeRegion: (region: 1 | 2 | 3 | 4) => void;
   onForceSyncToFirestore: () => void;
   onOpenGoogleSheetsModal: () => void;
-  onOpenPieceworkModal: () => void;
   onOpenConfigModal: () => void;
   onOpenExportModal: () => void;
 }
@@ -50,7 +49,6 @@ export const Header: React.FC<HeaderProps> = ({
   onChangeRegion,
   onForceSyncToFirestore,
   onOpenGoogleSheetsModal,
-  onOpenPieceworkModal,
   onOpenConfigModal,
   onOpenExportModal,
 }) => {
@@ -251,15 +249,6 @@ export const Header: React.FC<HeaderProps> = ({
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
             )}
-
-            {/* Lương Sản Phẩm */}
-            <button
-              onClick={onOpenPieceworkModal}
-              className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-medium transition-colors"
-            >
-              <Package className="w-3.5 h-3.5 text-indigo-600" />
-              <span className="hidden md:inline">Lương Sản Phẩm</span>
-            </button>
 
             {/* Cài Đặt */}
             <button

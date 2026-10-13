@@ -26,7 +26,7 @@ interface PayrollTableProps {
   onQuickUpdateAdvance: (employeeId: string, advance: number) => void;
 }
 
-type ViewMode = 'full' | 'summary' | 'insurance' | 'piecework';
+type ViewMode = 'full' | 'summary' | 'allowance' | 'insurance';
 
 type SortField =
   | 'code'
@@ -34,7 +34,7 @@ type SortField =
   | 'department'
   | 'contractSalary'
   | 'actualWorkDays'
-  | 'pieceworkSalary'
+  | 'workdaySalary'
   | 'totalGrossIncome'
   | 'totalEmployeeInsurance'
   | 'pitTax'
@@ -113,9 +113,9 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
             valA = a.employee.actualWorkDays;
             valB = b.employee.actualWorkDays;
             break;
-          case 'pieceworkSalary':
-            valA = a.pieceworkSalary;
-            valB = b.pieceworkSalary;
+          case 'workdaySalary':
+            valA = a.workdaySalary;
+            valB = b.workdaySalary;
             break;
           case 'totalGrossIncome':
             valA = a.totalGrossIncome;
@@ -202,32 +202,32 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
           <div className="flex items-center bg-slate-200/70 p-0.5 rounded-lg text-[11px] font-semibold text-slate-700">
             <button
               onClick={() => setViewMode('summary')}
-              className={`px-2 py-1 rounded-md transition-colors ${
-                viewMode === 'summary' ? 'bg-white text-blue-700 shadow-2xs' : 'hover:text-slate-900'
+              className={`px-2.5 py-1 rounded-md transition-colors ${
+                viewMode === 'summary' ? 'bg-white text-blue-700 shadow-2xs font-bold' : 'hover:text-slate-900'
               }`}
             >
-              Tổng Quan
+              Tổng Quan Thu Nhập
+            </button>
+            <button
+              onClick={() => setViewMode('allowance')}
+              className={`px-2.5 py-1 rounded-md transition-colors ${
+                viewMode === 'allowance' ? 'bg-white text-blue-700 shadow-2xs font-bold' : 'hover:text-slate-900'
+              }`}
+            >
+              Tăng Ca &amp; Phụ Cấp
             </button>
             <button
               onClick={() => setViewMode('insurance')}
-              className={`px-2 py-1 rounded-md transition-colors ${
-                viewMode === 'insurance' ? 'bg-white text-blue-700 shadow-2xs' : 'hover:text-slate-900'
+              className={`px-2.5 py-1 rounded-md transition-colors ${
+                viewMode === 'insurance' ? 'bg-white text-blue-700 shadow-2xs font-bold' : 'hover:text-slate-900'
               }`}
             >
-              BHXH &amp; Thuế
-            </button>
-            <button
-              onClick={() => setViewMode('piecework')}
-              className={`px-2 py-1 rounded-md transition-colors ${
-                viewMode === 'piecework' ? 'bg-white text-blue-700 shadow-2xs' : 'hover:text-slate-900'
-              }`}
-            >
-              Lương Sản Phẩm
+              BHXH &amp; Thuế TNCN
             </button>
             <button
               onClick={() => setViewMode('full')}
-              className={`px-2 py-1 rounded-md transition-colors ${
-                viewMode === 'full' ? 'bg-white text-blue-700 shadow-2xs' : 'hover:text-slate-900'
+              className={`px-2.5 py-1 rounded-md transition-colors ${
+                viewMode === 'full' ? 'bg-white text-blue-700 shadow-2xs font-bold' : 'hover:text-slate-900'
               }`}
             >
               Đầy Đủ Cột
@@ -297,7 +297,7 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
                 </th>
               )}
 
-              {(viewMode === 'summary' || viewMode === 'piecework' || viewMode === 'full') && (
+              {(viewMode === 'summary' || viewMode === 'allowance' || viewMode === 'full') && (
                 <th
                   onClick={() => handleSort('actualWorkDays')}
                   className="px-2.5 py-2 text-center cursor-pointer hover:bg-slate-200/70"
@@ -308,29 +308,25 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
                 </th>
               )}
 
-              {(viewMode === 'summary' || viewMode === 'piecework' || viewMode === 'full') && (
+              {(viewMode === 'summary' || viewMode === 'full') && (
                 <th
-                  onClick={() => handleSort('pieceworkSalary')}
+                  onClick={() => handleSort('workdaySalary')}
                   className="px-2.5 py-2 text-right cursor-pointer hover:bg-slate-200/70 bg-blue-50/50 text-blue-900"
                 >
                   <div className="flex items-center justify-end gap-1">
-                    Lương SP <ArrowUpDown className="w-3 h-3 text-slate-400" />
+                    Lương Ngày Công <ArrowUpDown className="w-3 h-3 text-slate-400" />
                   </div>
                 </th>
               )}
 
-              {(viewMode === 'piecework' || viewMode === 'full') && (
-                <th className="px-2.5 py-2 text-center text-slate-600">Sản Phẩm Chi Tiết</th>
+              {(viewMode === 'summary' || viewMode === 'allowance' || viewMode === 'full') && (
+                <th className="px-2.5 py-2 text-right">Phụ Cấp Đi Tàu/Cảng</th>
               )}
 
-              {(viewMode === 'summary' || viewMode === 'full') && (
-                <th className="px-2.5 py-2 text-right">Phụ Cấp Hỗ Trợ</th>
-              )}
-
-              {viewMode === 'full' && (
+              {(viewMode === 'allowance' || viewMode === 'full') && (
                 <>
-                  <th className="px-2.5 py-2 text-right">Làm Thêm OT</th>
-                  <th className="px-2.5 py-2 text-right">Thưởng</th>
+                  <th className="px-2.5 py-2 text-right">Tăng Ca &amp; Trực Cảng</th>
+                  <th className="px-2.5 py-2 text-right">Thưởng Chuyến/KPI</th>
                 </>
               )}
 
@@ -459,7 +455,7 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
                     )}
 
                     {/* Ngày công */}
-                    {(viewMode === 'summary' || viewMode === 'piecework' || viewMode === 'full') && (
+                    {(viewMode === 'summary' || viewMode === 'allowance' || viewMode === 'full') && (
                       <td className="px-2.5 py-2 text-center">
                         <input
                           type="number"
@@ -477,35 +473,22 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
                       </td>
                     )}
 
-                    {/* Lương sản phẩm */}
-                    {(viewMode === 'summary' || viewMode === 'piecework' || viewMode === 'full') && (
-                      <td className="px-2.5 py-2 text-right bg-blue-50/20 font-bold text-blue-700">
-                        {row.pieceworkSalary > 0 ? formatVND(row.pieceworkSalary) : '-'}
-                      </td>
-                    )}
-
-                    {/* Chi tiết sản phẩm */}
-                    {(viewMode === 'piecework' || viewMode === 'full') && (
-                      <td className="px-2.5 py-2 text-center text-[10px] text-slate-500">
-                        {emp.pieceworkItems && emp.pieceworkItems.length > 0 ? (
-                          <span className="px-1.5 py-0.5 bg-blue-100/70 text-blue-800 rounded font-medium">
-                            {emp.pieceworkItems.length} mã SP ({emp.pieceworkItems.reduce((s, p) => s + p.quantity, 0)} cái)
-                          </span>
-                        ) : (
-                          <span className="text-slate-400">Không</span>
-                        )}
-                      </td>
-                    )}
-
-                    {/* Phụ cấp hỗ trợ */}
+                    {/* Lương Ngày Công Thực Tế */}
                     {(viewMode === 'summary' || viewMode === 'full') && (
+                      <td className="px-2.5 py-2 text-right bg-blue-50/20 font-bold text-blue-700">
+                        {formatVND(row.workdaySalary)}
+                      </td>
+                    )}
+
+                    {/* Phụ cấp đi tàu & hỗ trợ */}
+                    {(viewMode === 'summary' || viewMode === 'allowance' || viewMode === 'full') && (
                       <td className="px-2.5 py-2 text-right text-slate-700 font-medium">
                         {row.totalAllowances > 0 ? formatVND(row.totalAllowances) : '-'}
                       </td>
                     )}
 
-                    {/* Full columns: OT & Bonus */}
-                    {viewMode === 'full' && (
+                    {/* Tăng ca & Thưởng */}
+                    {(viewMode === 'allowance' || viewMode === 'full') && (
                       <>
                         <td className="px-2.5 py-2 text-right text-slate-600">
                           {row.totalOvertimeSalary > 0 ? formatVND(row.totalOvertimeSalary) : '-'}
@@ -519,7 +502,7 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
                             onChange={e =>
                               onQuickUpdateBonus(emp.id, parseFloat(e.target.value) || 0)
                             }
-                            className="w-18 text-right px-1 py-0.5 border border-slate-200 rounded text-xs bg-white"
+                            className="w-18 text-right px-1 py-0.5 border border-slate-200 rounded text-xs bg-white font-medium"
                           />
                         </td>
                       </>
@@ -636,28 +619,27 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
                     )}
                   </td>
                 )}
-                {(viewMode === 'summary' || viewMode === 'piecework' || viewMode === 'full') && (
-                  <td className="px-2.5 py-2.5 text-center">
+                {(viewMode === 'summary' || viewMode === 'allowance' || viewMode === 'full') && (
+                  <td className="px-2.5 py-2.5 text-center font-bold">
                     {filteredRows.reduce((s, r) => s + r.employee.actualWorkDays, 0)} công
                   </td>
                 )}
-                {(viewMode === 'summary' || viewMode === 'piecework' || viewMode === 'full') && (
-                  <td className="px-2.5 py-2.5 text-right text-blue-700 bg-blue-50">
-                    {formatVND(filteredRows.reduce((s, r) => s + r.pieceworkSalary, 0))}
+                {(viewMode === 'summary' || viewMode === 'full') && (
+                  <td className="px-2.5 py-2.5 text-right text-blue-700 bg-blue-50 font-bold">
+                    {formatVND(filteredRows.reduce((s, r) => s + r.workdaySalary, 0))}
                   </td>
                 )}
-                {(viewMode === 'piecework' || viewMode === 'full') && <td></td>}
-                {(viewMode === 'summary' || viewMode === 'full') && (
-                  <td className="px-2.5 py-2.5 text-right">
+                {(viewMode === 'summary' || viewMode === 'allowance' || viewMode === 'full') && (
+                  <td className="px-2.5 py-2.5 text-right font-bold text-slate-800">
                     {formatVND(filteredRows.reduce((s, r) => s + r.totalAllowances, 0))}
                   </td>
                 )}
-                {viewMode === 'full' && (
+                {(viewMode === 'allowance' || viewMode === 'full') && (
                   <>
-                    <td className="px-2.5 py-2.5 text-right">
+                    <td className="px-2.5 py-2.5 text-right font-medium">
                       {formatVND(filteredRows.reduce((s, r) => s + r.totalOvertimeSalary, 0))}
                     </td>
-                    <td className="px-2.5 py-2.5 text-right">
+                    <td className="px-2.5 py-2.5 text-right font-medium">
                       {formatVND(filteredRows.reduce((s, r) => s + r.bonus, 0))}
                     </td>
                   </>

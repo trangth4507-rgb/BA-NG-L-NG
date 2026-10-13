@@ -115,11 +115,8 @@ export function calculateEmployeeSalary(
   // 1. Lương theo ngày công thực tế
   const workdaySalary = Math.round((employee.contractSalary / stdDays) * actualDays);
 
-  // 2. Lương sản phẩm / năng suất
-  const pieceworkSalary = (employee.pieceworkItems || []).reduce(
-    (sum, item) => sum + (item.quantity * item.unitPrice || 0),
-    0
-  );
+  // 2. Doanh nghiệp vận tải thủy nội địa & cảng biển: Tính lương thời gian theo ngày công, không áp dụng lương sản phẩm
+  const pieceworkSalary = 0;
 
   // 3. Tiền làm thêm giờ (OT) theo Điều 98 Bộ luật Lao động 2019
   const hourlyRate = employee.contractSalary / (stdDays * 8);
@@ -175,11 +172,10 @@ export function calculateEmployeeSalary(
 
   const taxableAllowances = Math.max(0, totalAllowances - taxFreeAllowances);
 
-  // 5. Tổng thu nhập (Gross Income)
+  // 5. Tổng thu nhập (Gross Income) = Lương ngày công + OT làm thêm + Phụ cấp + Thưởng
   const bonus = employee.bonus || 0;
   const totalGrossIncome =
     workdaySalary +
-    pieceworkSalary +
     totalOvertimeSalary +
     totalAllowances +
     bonus;

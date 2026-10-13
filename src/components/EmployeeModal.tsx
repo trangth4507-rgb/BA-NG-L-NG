@@ -11,11 +11,12 @@ import {
   Briefcase,
   HeartHandshake,
   DollarSign,
+  Clock,
 } from 'lucide-react';
 
 interface EmployeeModalProps {
   employee: Employee | null; // null nếu là thêm mới
-  products: ProductItem[];
+  products?: ProductItem[];
   standardWorkDays: number;
   onSave: (employee: Employee) => void;
   onClose: () => void;
@@ -23,12 +24,12 @@ interface EmployeeModalProps {
 
 export const EmployeeModal: React.FC<EmployeeModalProps> = ({
   employee,
-  products,
+  products = [],
   standardWorkDays,
   onSave,
   onClose,
 }) => {
-  const [activeTab, setActiveTab] = useState<'info' | 'salary' | 'piecework' | 'allowances' | 'overtime'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'salary' | 'workdays' | 'allowances' | 'overtime'>('info');
 
   const [formData, setFormData] = useState<Employee>(() => {
     if (employee) {
@@ -131,7 +132,7 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
               {employee ? `Cập Nhật Nhân Viên: ${employee.fullName}` : 'Thêm Nhân Viên Mới Vào Bảng Lương'}
             </h2>
             <p className="text-xs text-slate-500">
-              Thiết lập lương cơ bản, lương sản phẩm, BHXH và các khoản phụ cấp hỗ trợ không tính BHXH
+              Thiết lập lương cơ bản theo HĐLĐ, ngày công làm việc, phụ cấp đi tàu/cảng và bảo hiểm xã hội
             </p>
           </div>
           <button
@@ -170,15 +171,15 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab('piecework')}
+            onClick={() => setActiveTab('workdays')}
             className={`py-3 px-3 text-xs font-semibold border-b-2 flex items-center gap-1.5 whitespace-nowrap transition-colors ${
-              activeTab === 'piecework'
+              activeTab === 'workdays'
                 ? 'border-blue-600 text-blue-600 bg-white'
                 : 'border-transparent text-slate-600 hover:text-slate-900'
             }`}
           >
             <Briefcase className="w-4 h-4" />
-            3. Lương Sản Phẩm &amp; Ngày Công
+            3. Ngày Công &amp; Lương Thời Gian
           </button>
           <button
             type="button"
@@ -551,13 +552,13 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
             </div>
           )}
 
-          {/* TAB 3: LƯƠNG SẢN PHẨM & NGÀY CÔNG */}
-          {activeTab === 'piecework' && (
+          {/* TAB 3: NGÀY CÔNG & LƯƠNG THỜI GIAN */}
+          {activeTab === 'workdays' && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Ngày công chuẩn trong tháng
+                    Ngày công chuẩn trong tháng (ngày)
                   </label>
                   <input
                     type="number"
@@ -572,10 +573,13 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
                     }
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
                   />
+                  <span className="text-[11px] text-slate-500 mt-1 block">
+                    Định mức ngày công quy định theo quy chế công ty (thường 26 ngày)
+                  </span>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Ngày công đi làm thực tế
+                    Ngày công làm việc / đi tàu / trực cảng thực tế
                   </label>
                   <input
                     type="number"
@@ -592,116 +596,60 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden font-bold text-blue-700"
                   />
                   <div className="text-[11px] text-slate-500 mt-1">
-                    Lương thời gian tạm tính:{' '}
-                    {formatVND(
-                      Math.round(
-                        (formData.contractSalary / (formData.standardWorkDays || 26)) *
-                          formData.actualWorkDays
-                      )
-                    )}
+                    Tỷ lệ hoàn thành công:{' '}
+                    <strong className="text-blue-700">
+                      {Math.round(
+                        (formData.actualWorkDays / (formData.standardWorkDays || 26)) * 100
+                      )}
+                      %
+                    </strong>
                   </div>
                 </div>
               </div>
 
-              {/* Danh sách sản phẩm hoàn thành */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                    Sản phẩm hoàn thành / Lương năng suất
-                  </h4>
-                  <div className="flex items-center gap-2">
-                    <select
-                      id="selectProductAdd"
-                      className="text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white"
-                      defaultValue=""
-                      onChange={e => {
-                        if (e.target.value) {
-                          handlePieceworkAdd(e.target.value);
-                          e.target.value = '';
-                        }
-                      }}
-                    >
-                      <option value="" disabled>
-                        + Thêm mã sản phẩm...
-                      </option>
-                      {products.map(p => (
-                        <option key={p.id} value={p.id}>
-                          {p.name} ({formatVND(p.unitPrice)}/{p.unit})
-                        </option>
-                      ))}
-                    </select>
+              {/* Bảng tổng hợp lương thời gian theo ngày công */}
+              <div className="bg-blue-50/60 border border-blue-200/80 rounded-xl p-4 space-y-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-blue-900 flex items-center gap-1.5">
+                  <Clock className="w-4 h-4 text-blue-700" />
+                  Quy Định Tính Lương Vận Tải Thủy &amp; Cảng Biển
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  <div className="bg-white p-3 rounded-lg border border-blue-100 shadow-2xs">
+                    <span className="text-slate-500 text-[11px] block">Lương HĐLĐ tháng</span>
+                    <span className="font-bold text-slate-800 text-sm">
+                      {formatVND(formData.contractSalary)}
+                    </span>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg border border-blue-100 shadow-2xs">
+                    <span className="text-slate-500 text-[11px] block">Đơn giá 1 ngày công</span>
+                    <span className="font-bold text-blue-700 text-sm">
+                      {formatVND(
+                        Math.round(
+                          formData.contractSalary / (formData.standardWorkDays || 26)
+                        )
+                      )}
+                      /ngày
+                    </span>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg border border-blue-100 shadow-2xs">
+                    <span className="text-slate-500 text-[11px] block">Lương ngày công thực nhận</span>
+                    <span className="font-extrabold text-emerald-700 text-sm">
+                      {formatVND(
+                        Math.round(
+                          (formData.contractSalary / (formData.standardWorkDays || 26)) *
+                            formData.actualWorkDays
+                        )
+                      )}
+                    </span>
                   </div>
                 </div>
 
-                {formData.pieceworkItems.length === 0 ? (
-                  <div className="p-6 text-center border-2 border-dashed border-slate-200 rounded-xl text-slate-400 text-xs">
-                    Chưa có sản phẩm nào được giao cho nhân viên này. Chọn sản phẩm ở danh sách trên để thêm.
-                  </div>
-                ) : (
-                  <div className="border border-slate-200 rounded-xl overflow-hidden">
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
-                        <tr>
-                          <th className="px-3 py-2">Tên Sản Phẩm</th>
-                          <th className="px-3 py-2 w-24">Đơn vị</th>
-                          <th className="px-3 py-2 w-28 text-right">Đơn giá</th>
-                          <th className="px-3 py-2 w-32 text-center">Số lượng</th>
-                          <th className="px-3 py-2 w-32 text-right">Thành tiền</th>
-                          <th className="px-3 py-2 w-12 text-center">Xóa</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {formData.pieceworkItems.map((item, idx) => (
-                          <tr key={idx} className="hover:bg-slate-50/50">
-                            <td className="px-3 py-2 font-medium text-slate-800">
-                              {item.productName}
-                            </td>
-                            <td className="px-3 py-2 text-slate-500">{item.unit}</td>
-                            <td className="px-3 py-2 text-right text-slate-600">
-                              {formatVND(item.unitPrice)}
-                            </td>
-                            <td className="px-3 py-2 text-center">
-                              <input
-                                type="number"
-                                min="0"
-                                value={item.quantity}
-                                onChange={e =>
-                                  handlePieceworkQtyChange(idx, parseInt(e.target.value, 10) || 0)
-                                }
-                                className="w-24 text-center px-2 py-1 border border-slate-300 rounded font-semibold focus:ring-1 focus:ring-blue-500 focus:outline-hidden"
-                              />
-                            </td>
-                            <td className="px-3 py-2 text-right font-bold text-blue-700">
-                              {formatVND(item.quantity * item.unitPrice)}
-                            </td>
-                            <td className="px-3 py-2 text-center">
-                              <button
-                                type="button"
-                                onClick={() => handlePieceworkDelete(idx)}
-                                className="text-slate-400 hover:text-red-500 p-1"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                      <tfoot className="bg-slate-50 font-semibold border-t border-slate-200">
-                        <tr>
-                          <td colSpan={4} className="px-3 py-2 text-right text-slate-600">
-                            Tổng Lương Sản Phẩm:
-                          </td>
-                          <td className="px-3 py-2 text-right text-blue-700 font-bold">
-                            {formatVND(
-                              formData.pieceworkItems.reduce((s, it) => s + it.quantity * it.unitPrice, 0)
-                            )}
-                          </td>
-                          <td></td>
-                        </tr>
-                      </tfoot>
-                    </table>
-                  </div>
-                )}
+                <div className="text-[11px] text-slate-600 bg-white/70 p-3 rounded-lg border border-blue-100 leading-relaxed">
+                  💡 <strong>Ghi chú cơ cấu tiền lương:</strong> Doanh nghiệp vận chuyển hàng thủy nội địa và cảng biển áp dụng chế độ <strong>lương thời gian theo ngày công chuẩn thực tế</strong> (không có lương sản phẩm như khối may mặc/gia công).
+                  <br />• Các khoản trực ca luồng lạch, bốc dỡ ban đêm hoặc làm thêm giờ được nhập tại tab <strong>5. Làm Thêm Giờ (OT)</strong>.
+                  <br />• Các khoản phụ cấp đi tàu/lưu tàu, tiền ăn ca, phụ cấp điện thoại liên lạc luồng, độc hại nặng nhọc được nhập tại tab <strong>4. Phụ Cấp &amp; Hỗ Trợ</strong>.
+                </div>
               </div>
             </div>
           )}

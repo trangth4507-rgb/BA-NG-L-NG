@@ -283,7 +283,7 @@ export const GoogleSheetsModal: React.FC<GoogleSheetsModalProps> = ({
                       Tùy chọn 1: Tạo Bảng Tính Mới Tự Động
                     </h4>
                     <p className="text-[11px] text-slate-500 mt-0.5">
-                      Tự động tạo 1 file Google Spreadsheet mới mang tên kỳ lương với đầy đủ 3 trang tính (Bảng Lương Tổng Hợp, Lương Sản Phẩm, BHXH &amp; Thuế TNCN).
+                      Tự động tạo 1 file Google Spreadsheet mới mang tên kỳ lương với đầy đủ 3 trang tính (Bảng Lương Tổng Hợp, Chi Tiết Phụ Cấp &amp; Tăng Ca, BHXH &amp; Thuế TNCN).
                     </p>
                   </div>
                   <button
@@ -425,7 +425,7 @@ export const GoogleSheetsModal: React.FC<GoogleSheetsModalProps> = ({
               <div className="flex justify-between">
                 <span>Các sheet sẽ cập nhật:</span>
                 <span className="font-medium text-slate-800">
-                  3 sheet (Tổng hợp, Sản phẩm, BHXH &amp; Thuế)
+                  3 sheet (Tổng hợp, Phụ cấp &amp; Tăng ca, BHXH &amp; Thuế)
                 </span>
               </div>
             </div>

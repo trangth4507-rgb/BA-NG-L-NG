@@ -30,7 +30,7 @@ export async function createPayrollSpreadsheet(
       },
       sheets: [
         { properties: { title: 'Bảng Lương Tổng Hợp' } },
-        { properties: { title: 'Lương Sản Phẩm Chi Tiết' } },
+        { properties: { title: 'Chi Tiết Phụ Cấp & Tăng Ca' } },
         { properties: { title: 'BHXH & Thuế TNCN' } },
       ],
     }),
@@ -81,7 +81,7 @@ export async function syncPayrollToSpreadsheet(
     (s: { properties: { title: string } }) => s.properties.title
   );
 
-  const neededSheets = ['Bảng Lương Tổng Hợp', 'Lương Sản Phẩm Chi Tiết', 'BHXH & Thuế TNCN'];
+  const neededSheets = ['Bảng Lương Tổng Hợp', 'Chi Tiết Phụ Cấp & Tăng Ca', 'BHXH & Thuế TNCN'];
   const sheetsToAdd = neededSheets.filter(t => !existingSheetTitles.includes(t));
 
   if (sheetsToAdd.length > 0) {
@@ -121,16 +121,15 @@ async function populateSpreadsheetData(
       'STT',
       'Mã NV',
       'Họ và tên',
-      'Phòng ban',
+      'Phòng ban / Đội tàu',
       'Chức vụ',
       'Lương HĐLĐ (VNĐ)',
       'Lương đóng BHXH (VNĐ)',
-      'Ngày công',
+      'Ngày công thực tế',
       'Lương ngày công (VNĐ)',
-      'Lương sản phẩm (VNĐ)',
       'Lương OT làm thêm (VNĐ)',
-      'Phụ cấp hỗ trợ (VNĐ)',
-      'Thưởng (VNĐ)',
+      'Phụ cấp đi tàu & hỗ trợ (VNĐ)',
+      'Thưởng chuyến/KPI (VNĐ)',
       'TỔNG THU NHẬP GROSS (VNĐ)',
       'Trừ BHXH/BHYT/BHTN (10.5%)',
       'Thuế TNCN (VNĐ)',
@@ -153,7 +152,6 @@ async function populateSpreadsheetData(
       r.employee.hasInsurance ? r.insuranceBase : 0,
       r.employee.actualWorkDays,
       r.workdaySalary,
-      r.pieceworkSalary,
       r.totalOvertimeSalary,
       r.totalAllowances,
       r.bonus,
@@ -173,9 +171,10 @@ async function populateSpreadsheetData(
   const totalNet = rows.reduce((s, r) => s + r.netSalary, 0);
   const totalIns = rows.reduce((s, r) => s + r.totalEmployeeInsurance, 0);
   const totalPit = rows.reduce((s, r) => s + r.pitTax, 0);
-  const totalPiece = rows.reduce((s, r) => s + r.pieceworkSalary, 0);
+  const totalWorkday = rows.reduce((s, r) => s + r.workdaySalary, 0);
   const totalAllow = rows.reduce((s, r) => s + r.totalAllowances, 0);
   const totalOt = rows.reduce((s, r) => s + r.totalOvertimeSalary, 0);
+  const totalBonus = rows.reduce((s, r) => s + r.bonus, 0);
   const totalAdv = rows.reduce((s, r) => s + r.advancePayment + r.otherDeductions, 0);
 
   sheet1Values.push([
@@ -187,11 +186,10 @@ async function populateSpreadsheetData(
     '',
     '',
     '',
-    '',
-    totalPiece,
+    totalWorkday,
     totalOt,
     totalAllow,
-    '',
+    totalBonus,
     totalGross,
     totalIns,
     totalPit,
@@ -202,52 +200,51 @@ async function populateSpreadsheetData(
     '',
   ]);
 
-  // --- Sheet 2: Lương Sản Phẩm Chi Tiết ---
+  // --- Sheet 2: Chi Tiết Phụ Cấp & Tăng Ca ---
   const sheet2Values: (string | number)[][] = [
-    [`BẢNG CHI TIẾT LƯƠNG SẢN PHẨM / NĂNG SUẤT THÁNG ${period.month}/${period.year}`],
+    [`BẢNG CHI TIẾT PHỤ CẤP ĐI TÀU/CẢNG & LÀM THÊM GIỜ THÁNG ${period.month}/${period.year}`],
     [],
     [
       'STT',
       'Mã NV',
       'Họ và tên',
-      'Mã sản phẩm',
-      'Tên sản phẩm / Công đoạn',
-      'Đơn vị tính',
-      'Đơn giá (VNĐ)',
-      'Số lượng hoàn thành',
-      'Thành tiền (VNĐ)',
+      'Phòng ban / Đội tàu',
+      'Chức vụ',
+      'Ăn ca (VNĐ)',
+      'Đi tàu/Lưu bến (VNĐ)',
+      'Đi lại (VNĐ)',
+      'Điện thoại (VNĐ)',
+      'Trách nhiệm (VNĐ)',
+      'Hỗ trợ khác (VNĐ)',
+      'Tổng Phụ Cấp (VNĐ)',
+      'OT ngày thường (h)',
+      'OT ngày nghỉ (h)',
+      'Lương OT làm thêm (VNĐ)',
+      'Thưởng chuyến/KPI (VNĐ)',
     ],
   ];
 
-  let pIndex = 1;
-  rows.forEach(r => {
-    if (r.employee.pieceworkItems && r.employee.pieceworkItems.length > 0) {
-      r.employee.pieceworkItems.forEach(item => {
-        sheet2Values.push([
-          pIndex++,
-          r.employee.code,
-          r.employee.fullName,
-          item.productId,
-          item.productName,
-          item.unit,
-          item.unitPrice,
-          item.quantity,
-          item.quantity * item.unitPrice,
-        ]);
-      });
-    } else {
-      sheet2Values.push([
-        pIndex++,
-        r.employee.code,
-        r.employee.fullName,
-        '-',
-        '(Không phát sinh)',
-        '-',
-        0,
-        0,
-        0,
-      ]);
-    }
+  rows.forEach((r, idx) => {
+    const al = r.employee.allowances;
+    const ot = r.employee.overtime;
+    sheet2Values.push([
+      idx + 1,
+      r.employee.code,
+      r.employee.fullName,
+      r.employee.department,
+      r.employee.position,
+      al.lunch || 0,
+      al.housing || 0,
+      al.transport || 0,
+      al.phone || 0,
+      al.otherTaxable || 0,
+      al.otherTaxFree || 0,
+      r.totalAllowances,
+      ot.weekdayHours || 0,
+      ot.weekendHours || 0,
+      r.totalOvertimeSalary,
+      r.bonus,
+    ]);
   });
 
   // --- Sheet 3: BHXH & Thuế TNCN ---
@@ -313,7 +310,7 @@ async function populateSpreadsheetData(
         values: sheet1Values,
       },
       {
-        range: "'Lương Sản Phẩm Chi Tiết'!A1",
+        range: "'Chi Tiết Phụ Cấp & Tăng Ca'!A1",
         values: sheet2Values,
       },
       {

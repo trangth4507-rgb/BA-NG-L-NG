@@ -3,131 +3,72 @@ import { DEFAULT_CONFIG } from '../utils/payrollCalculator';
 
 const STORAGE_KEY = 'vietnam_payroll_system_data_v2';
 
-export const INITIAL_PRODUCTS: ProductItem[] = [
-  {
-    id: 'prod_1',
-    code: 'SP-MAY-01',
-    name: 'Gia công may Áo Polo xuất khẩu',
-    unit: 'Chiếc',
-    unitPrice: 45000,
-    note: 'Định mức may ráp hoàn thiện',
-  },
-  {
-    id: 'prod_2',
-    code: 'SP-LAP-02',
-    name: 'Lắp ráp Bo mạch Điện tử Modul B',
-    unit: 'Bộ',
-    unitPrice: 65000,
-    note: 'Yêu cầu kiểm định phòng sạch',
-  },
-  {
-    id: 'prod_3',
-    code: 'SP-DONG-03',
-    name: 'Đóng gói sản phẩm & Dán tem thùng',
-    unit: 'Thùng',
-    unitPrice: 20000,
-    note: 'Đóng thùng carton 24 sp',
-  },
-  {
-    id: 'prod_4',
-    code: 'SP-QC-04',
-    name: 'Kiểm tra chất lượng thành phẩm QC',
-    unit: 'Lô',
-    unitPrice: 50000,
-    note: 'Test chức năng và đóng dấu đạt',
-  },
-];
+export const INITIAL_PRODUCTS: ProductItem[] = [];
 
 export const INITIAL_EMPLOYEES: Employee[] = [
   {
     id: 'emp_1',
     code: 'NV001',
     fullName: 'Nguyễn Văn Toàn',
-    department: 'Xưởng Sản Xuất 1',
-    position: 'Thợ may chính',
+    department: 'Đội Tàu Vận Tải Thủy',
+    position: 'Thuyền trưởng Tàu Sông Biển SB',
     phone: '0981 234 567',
-    email: 'toan.nguyen@congty.com',
+    email: 'toan.nguyen@vantai-cangbien.vn',
     taxId: '8023456789',
     dependentsCount: 1,
     hasInsurance: true,
-    contractSalary: 5500000, // Lương cơ bản HĐLĐ
-    insuranceSalary: 5500000, // Mức đóng BHXH
+    contractSalary: 18000000, // Lương theo HĐLĐ chức danh Thuyền trưởng
+    insuranceSalary: 8000000, // Mức đóng BHXH theo thang bảng lương
     standardWorkDays: 26,
     actualWorkDays: 26,
-    pieceworkItems: [
-      {
-        productId: 'prod_1',
-        productName: 'Gia công may Áo Polo xuất khẩu',
-        unit: 'Chiếc',
-        unitPrice: 45000,
-        quantity: 180,
-        total: 8100000,
-      },
-      {
-        productId: 'prod_3',
-        productName: 'Đóng gói sản phẩm & Dán tem thùng',
-        unit: 'Thùng',
-        unitPrice: 20000,
-        quantity: 50,
-        total: 1000000,
-      },
-    ],
+    pieceworkItems: [],
     overtime: {
       weekdayHours: 12,
       weekendHours: 6,
       holidayHours: 0,
     },
     allowances: {
-      lunch: 730000, // Miễn thuế, không tính đóng BHXH
-      transport: 500000, // Không tính đóng BHXH
-      phone: 200000, // Không tính đóng BHXH
-      housing: 1000000, // Không tính đóng BHXH
-      childcare: 500000, // Không tính đóng BHXH
-      attendance: 500000, // Không tính đóng BHXH
-      otherTaxFree: 0,
-      otherTaxable: 0,
+      lunch: 730000, // Tiền ăn ca / ăn trưa theo quy định
+      transport: 500000, // Hỗ trợ đi lại / bến bãi
+      phone: 500000, // Phụ cấp điện thoại liên lạc tàu - bờ
+      housing: 1500000, // Phụ cấp lưu trú / theo tàu
+      childcare: 500000, // Hỗ trợ con nhỏ
+      attendance: 500000, // Chuyên cần chuyến
+      otherTaxFree: 1000000, // Phụ cấp công tác phí đi tàu / đường thủy
+      otherTaxable: 2000000, // Phụ cấp trách nhiệm thuyền trưởng
     },
-    bonus: 1000000,
+    bonus: 2500000, // Thưởng an toàn luồng lạch & giải phóng tàu nhanh
     advancePayment: 2000000,
     otherDeductions: 0,
     bankAccount: '19034567890123',
     bankName: 'Techcombank',
-    note: 'Đạt năng suất vượt bậc trong tháng',
+    note: 'Thuyền trưởng đội sà lan tự hành - hoàn thành xuất sắc các chuyến vận tải luồng',
     gender: 'Nam',
-    birthDate: '1992-05-15',
-    idCard: '031092001456',
+    birthDate: '1985-06-20',
+    idCard: '031085002341',
     idCardDate: '2021-04-10',
     socialInsuranceBookNumber: '7923456789',
-    contractType: 'HĐ Xác định thời hạn',
-    startDate: '2022-03-15',
+    contractType: 'HĐ Không xác định thời hạn',
+    startDate: '2020-03-15',
     status: 'active',
-    address: 'Q. Tân Bình, TP. Hồ Chí Minh',
+    address: 'Q. 7, TP. Hồ Chí Minh',
   },
   {
     id: 'emp_2',
     code: 'NV002',
     fullName: 'Trần Thị Thu Hà',
-    department: 'Xưởng Sản Xuất 2',
-    position: 'Kỹ thuật viên bo mạch',
+    department: 'Ban Khai Thác Cảng & Bến Bãi',
+    position: 'Kế toán Cảng & Giao nhận Hàng Hải',
     phone: '0912 345 678',
-    email: 'ha.tran@congty.com',
+    email: 'ha.tran@vantai-cangbien.vn',
     taxId: '8123456790',
     dependentsCount: 2,
     hasInsurance: true,
-    contractSalary: 6000000,
-    insuranceSalary: 6000000,
+    contractSalary: 12000000,
+    insuranceSalary: 7000000,
     standardWorkDays: 26,
     actualWorkDays: 25,
-    pieceworkItems: [
-      {
-        productId: 'prod_2',
-        productName: 'Lắp ráp Bo mạch Điện tử Modul B',
-        unit: 'Bộ',
-        unitPrice: 65000,
-        quantity: 150,
-        total: 9750000,
-      },
-    ],
+    pieceworkItems: [],
     overtime: {
       weekdayHours: 8,
       weekendHours: 4,
@@ -136,44 +77,44 @@ export const INITIAL_EMPLOYEES: Employee[] = [
     allowances: {
       lunch: 730000,
       transport: 600000,
-      phone: 300000,
+      phone: 400000,
       housing: 800000,
       childcare: 1000000, // Nuôi 2 con nhỏ
       attendance: 500000,
       otherTaxFree: 0,
       otherTaxable: 0,
     },
-    bonus: 500000,
+    bonus: 1000000,
     advancePayment: 0,
     otherDeductions: 0,
     bankAccount: '0011004567890',
     bankName: 'Vietcombank',
+    gender: 'Nữ',
+    birthDate: '1990-11-12',
+    idCard: '031090008892',
+    idCardDate: '2020-09-15',
+    socialInsuranceBookNumber: '7923456790',
+    contractType: 'HĐ Xác định thời hạn',
+    startDate: '2021-08-01',
+    status: 'active',
+    address: 'TP. Thủ Đức, TP. Hồ Chí Minh',
   },
   {
     id: 'emp_3',
     code: 'NV003',
     fullName: 'Lê Hoàng Minh',
-    department: 'Bộ Phận Kỹ Thuật & QC',
-    position: 'Trưởng nhóm Kiểm định',
+    department: 'Phòng Kỹ Thuật Đội Tàu',
+    position: 'Máy trưởng Tàu Thủy',
     phone: '0978 901 234',
-    email: 'minh.le@congty.com',
+    email: 'minh.le@vantai-cangbien.vn',
     taxId: '8223456791',
     dependentsCount: 0,
     hasInsurance: true,
-    contractSalary: 12000000,
-    insuranceSalary: 8000000, // Đăng ký đóng BHXH 8 triệu theo thang bảng lương
+    contractSalary: 16500000,
+    insuranceSalary: 8000000,
     standardWorkDays: 26,
     actualWorkDays: 26,
-    pieceworkItems: [
-      {
-        productId: 'prod_4',
-        productName: 'Kiểm tra chất lượng thành phẩm QC',
-        unit: 'Lô',
-        unitPrice: 50000,
-        quantity: 70,
-        total: 3500000,
-      },
-    ],
+    pieceworkItems: [],
     overtime: {
       weekdayHours: 10,
       weekendHours: 8,
@@ -183,67 +124,85 @@ export const INITIAL_EMPLOYEES: Employee[] = [
       lunch: 730000,
       transport: 500000,
       phone: 500000,
-      housing: 0,
+      housing: 1000000,
       childcare: 0,
       attendance: 500000,
-      otherTaxFree: 0,
-      otherTaxable: 1000000, // Phụ cấp trách nhiệm trưởng nhóm
+      otherTaxFree: 1000000, // Độc hại nặng nhọc buồng máy tàu thủy
+      otherTaxable: 1500000, // Phụ cấp trách nhiệm Máy trưởng
     },
     bonus: 2000000,
     advancePayment: 0,
     otherDeductions: 0,
     bankAccount: '102867890123',
     bankName: 'VietinBank',
+    gender: 'Nam',
+    birthDate: '1987-04-05',
+    idCard: '031087004512',
+    idCardDate: '2019-12-05',
+    socialInsuranceBookNumber: '7923456791',
+    contractType: 'HĐ Không xác định thời hạn',
+    startDate: '2019-05-10',
+    status: 'active',
+    address: 'H. Nhà Bè, TP. Hồ Chí Minh',
   },
   {
     id: 'emp_4',
     code: 'NV004',
     fullName: 'Phạm Phương Thảo',
-    department: 'Phòng Kế Toán - Hành Chính',
-    position: 'Kế toán tổng hợp',
+    department: 'Ban Điều Độ & Luồng Lạch',
+    position: 'Nhân viên Điều độ Bến Cảng & Luồng Lạch',
     phone: '0903 456 789',
-    email: 'thao.pham@congty.com',
+    email: 'thao.pham@vantai-cangbien.vn',
     taxId: '8323456792',
     dependentsCount: 1,
     hasInsurance: true,
-    contractSalary: 14000000,
-    insuranceSalary: 9000000,
+    contractSalary: 13000000,
+    insuranceSalary: 7500000,
     standardWorkDays: 26,
     actualWorkDays: 26,
     pieceworkItems: [],
     overtime: {
-      weekdayHours: 5,
+      weekdayHours: 6,
       weekendHours: 0,
       holidayHours: 0,
     },
     allowances: {
       lunch: 730000,
-      transport: 400000,
-      phone: 400000,
+      transport: 500000,
+      phone: 500000,
       housing: 0,
       childcare: 500000,
       attendance: 500000,
-      otherTaxFree: 500000, // Trang phục công sở
-      otherTaxable: 0,
+      otherTaxFree: 500000,
+      otherTaxable: 1000000, // Phụ cấp trực ca bến bãi
     },
     bonus: 1500000,
     advancePayment: 1000000,
     otherDeductions: 0,
     bankAccount: '0451000123456',
     bankName: 'MB Bank',
+    gender: 'Nữ',
+    birthDate: '1993-08-25',
+    idCard: '031093006789',
+    idCardDate: '2021-07-20',
+    socialInsuranceBookNumber: '7923456792',
+    contractType: 'HĐ Xác định thời hạn',
+    startDate: '2022-02-15',
+    status: 'active',
+    address: 'Q. 4, TP. Hồ Chí Minh',
   },
   {
     id: 'emp_5',
     code: 'NV005',
     fullName: 'Vũ Đức Nam',
     department: 'Ban Giám Đốc / Điều Hành',
-    position: 'Giám đốc Điều hành SX',
+    position: 'Giám đốc Khai thác Vận tải Cảng',
     phone: '0918 888 999',
-    email: 'nam.vu@congty.com',
+    email: 'nam.vu@vantai-cangbien.vn',
     taxId: '8423456793',
     dependentsCount: 2,
     hasInsurance: true,
-    contractSalary: 35000000,
+    contractSalary: 32000000,
     insuranceSalary: 15000000,
     standardWorkDays: 26,
     actualWorkDays: 26,
@@ -257,63 +216,72 @@ export const INITIAL_EMPLOYEES: Employee[] = [
       lunch: 730000,
       transport: 2000000,
       phone: 1000000,
-      housing: 3000000,
+      housing: 2500000,
       childcare: 0,
       attendance: 0,
       otherTaxFree: 1000000,
-      otherTaxable: 2000000,
+      otherTaxable: 3000000, // Phụ cấp trách nhiệm điều hành cảng
     },
     bonus: 5000000,
     advancePayment: 0,
     otherDeductions: 0,
     bankAccount: '123456789999',
     bankName: 'BIDV',
+    gender: 'Nam',
+    birthDate: '1980-03-10',
+    idCard: '031080001122',
+    idCardDate: '2020-01-15',
+    socialInsuranceBookNumber: '7923456793',
+    contractType: 'HĐ Không xác định thời hạn',
+    startDate: '2018-01-01',
+    status: 'active',
+    address: 'Q. 1, TP. Hồ Chí Minh',
   },
   {
     id: 'emp_6',
     code: 'NV006',
     fullName: 'Đặng Tuấn Anh',
-    department: 'Xưởng Sản Xuất 1',
-    position: 'Nhân viên thử việc',
+    department: 'Đội Khai Thác Bến Cảng',
+    position: 'Thủy thủ / Vận hành Cẩu Cảng',
     phone: '0966 112 233',
-    email: 'tuananh@congty.com',
-    taxId: '',
+    email: 'tuananh@vantai-cangbien.vn',
+    taxId: '8523456794',
     dependentsCount: 0,
-    hasInsurance: false, // Thử việc chưa đóng BHXH
-    contractSalary: 4500000,
-    insuranceSalary: 0,
+    hasInsurance: true,
+    contractSalary: 9500000,
+    insuranceSalary: 5500000,
     standardWorkDays: 26,
-    actualWorkDays: 24,
-    pieceworkItems: [
-      {
-        productId: 'prod_1',
-        productName: 'Gia công may Áo Polo xuất khẩu',
-        unit: 'Chiếc',
-        unitPrice: 45000,
-        quantity: 90,
-        total: 4050000,
-      },
-    ],
+    actualWorkDays: 26,
+    pieceworkItems: [],
     overtime: {
-      weekdayHours: 4,
-      weekendHours: 0,
+      weekdayHours: 14,
+      weekendHours: 6,
       holidayHours: 0,
     },
     allowances: {
       lunch: 730000,
-      transport: 300000,
-      phone: 0,
-      housing: 500000,
+      transport: 400000,
+      phone: 200000,
+      housing: 800000,
       childcare: 0,
-      attendance: 300000,
-      otherTaxFree: 0,
+      attendance: 400000,
+      otherTaxFree: 800000, // Độc hại nặng nhọc bốc xếp bến cảng
       otherTaxable: 0,
     },
-    bonus: 300000,
+    bonus: 1000000,
     advancePayment: 500000,
     otherDeductions: 0,
     bankAccount: '190367891122',
     bankName: 'Techcombank',
+    gender: 'Nam',
+    birthDate: '1995-09-18',
+    idCard: '031095007823',
+    idCardDate: '2022-05-12',
+    socialInsuranceBookNumber: '7923456794',
+    contractType: 'HĐ Xác định thời hạn',
+    startDate: '2023-04-01',
+    status: 'active',
+    address: 'H. Cần Giờ, TP. Hồ Chí Minh',
   },
 ];
 
@@ -327,8 +295,8 @@ export function getInitialPayrollPeriod(): PayrollPeriod {
     month: currentMonth,
     year: currentYear,
     title: `Bảng Lương Tháng ${currentMonth}/${currentYear}`,
-    companyName: 'CÔNG TY TNHH SẢN XUẤT & THƯƠNG MẠI TIẾN THỊNH',
-    companyAddress: 'Khu Công Nghiệp Tân Bình, TP. Hồ Chí Minh',
+    companyName: 'CÔNG TY CP VẬN TẢI THỦY NỘI ĐỊA & CẢNG BIỂN TIẾN PHÁT',
+    companyAddress: 'Khu Bến Cảng Sông Biển / ICD Vận Tải Nội Địa, TP. Hồ Chí Minh',
     taxCode: '0315894268',
     standardWorkDays: 26,
     employees: INITIAL_EMPLOYEES,
@@ -350,20 +318,60 @@ export function loadAllPeriods(): PayrollPeriod[] {
     }
     const data = JSON.parse(raw);
     if (Array.isArray(data) && data.length > 0) {
-      // Chuẩn hóa tỷ lệ bảo hiểm về 32% (DN 21.5% + NLĐ 10.5%) nếu chưa cấu hình riêng
+      // Chuẩn hóa và làm sạch: Loại bỏ lương sản phẩm, cập nhật doanh nghiệp vận tải thủy nội địa & cảng biển
       const normalized = data.map((p: PayrollPeriod) => {
-        if (p.config && p.config.employerUnionRate === 0.02 && !p.config.includeTradeUnionFee) {
+        const isOldManufacture =
+          !p.companyName ||
+          p.companyName.includes('TIẾN THỊNH') ||
+          p.companyName.includes('SẢN XUẤT');
+
+        const companyName = isOldManufacture
+          ? 'CÔNG TY CP VẬN TẢI THỦY NỘI ĐỊA & CẢNG BIỂN TIẾN PHÁT'
+          : p.companyName;
+
+        const companyAddress = isOldManufacture
+          ? 'Khu Bến Cảng Sông Biển / ICD Vận Tải Nội Địa, TP. Hồ Chí Minh'
+          : p.companyAddress;
+
+        // Xóa sạch mọi mục lương sản phẩm của nhân viên vì đây là công ty vận chuyển thủy cảng biển
+        const cleanedEmployees = (p.employees || []).map(emp => {
+          const isOldWorker =
+            emp.position?.includes('Thợ may') ||
+            emp.department?.includes('Xưởng Sản Xuất') ||
+            emp.position?.includes('bo mạch');
+
+          if (isOldWorker) {
+            const matchInitial = INITIAL_EMPLOYEES.find(ie => ie.code === emp.code);
+            if (matchInitial) {
+              return {
+                ...matchInitial,
+                actualWorkDays: emp.actualWorkDays || matchInitial.actualWorkDays,
+                pieceworkItems: [],
+              };
+            }
+          }
+
           return {
-            ...p,
-            config: {
-              ...p.config,
-              employerUnionRate: 0,
-              includeTradeUnionFee: false,
-            },
+            ...emp,
+            pieceworkItems: [],
           };
-        }
-        return p;
+        });
+
+        return {
+          ...p,
+          companyName,
+          companyAddress,
+          products: [],
+          employees: cleanedEmployees.length > 0 ? cleanedEmployees : INITIAL_EMPLOYEES,
+          config: {
+            ...p.config,
+            employerUnionRate: 0,
+            includeTradeUnionFee: false,
+          },
+        };
       });
+
+      saveAllPeriods(normalized);
       return normalized;
     }
     const initial = [getInitialPayrollPeriod()];
