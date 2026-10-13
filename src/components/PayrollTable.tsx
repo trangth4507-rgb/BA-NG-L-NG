@@ -20,6 +20,7 @@ interface PayrollTableProps {
   onEditEmployee: (employee: Employee) => void;
   onDeleteEmployee: (employeeId: string) => void;
   onAddNewEmployee: () => void;
+  onResetSampleEmployees?: () => void;
   onSwitchToEmployeeDirectory?: () => void;
   onQuickUpdateWorkDays: (employeeId: string, days: number) => void;
   onQuickUpdateBonus: (employeeId: string, bonus: number) => void;
@@ -46,6 +47,7 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
   onEditEmployee,
   onDeleteEmployee,
   onAddNewEmployee,
+  onResetSampleEmployees,
   onSwitchToEmployeeDirectory,
   onQuickUpdateWorkDays,
   onQuickUpdateBonus,
@@ -395,8 +397,37 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
           <tbody className="divide-y divide-slate-100 text-[11px] sm:text-xs">
             {filteredRows.length === 0 ? (
               <tr>
-                <td colSpan={20} className="px-4 py-8 text-center text-slate-400 text-xs">
-                  Không tìm thấy nhân viên nào phù hợp bộ lọc.
+                <td colSpan={20} className="px-4 py-12 text-center text-slate-500">
+                  <div className="max-w-md mx-auto space-y-3 bg-slate-50/80 p-6 rounded-2xl border border-slate-200 shadow-2xs">
+                    <p className="font-bold text-slate-800 text-sm">
+                      {calculatedRows.length === 0
+                        ? 'Chưa có dữ liệu nhân viên trong kỳ lương này'
+                        : 'Không tìm thấy nhân viên nào phù hợp bộ lọc'}
+                    </p>
+                    <p className="text-xs text-slate-500 leading-relaxed">
+                      {calculatedRows.length === 0
+                        ? 'Bạn có thể nạp ngay 6 vị trí nhân sự mẫu ngành Vận Tải Thủy & Cảng Biển (Thuyền trưởng, Máy trưởng, Điều độ luồng, Lái cẩu...) hoặc bấm thêm mới nhân viên.'
+                        : 'Hãy thử xóa từ khóa tìm kiếm hoặc chọn lại danh mục phòng ban.'}
+                    </p>
+                    <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                      {calculatedRows.length === 0 && onResetSampleEmployees && (
+                        <button
+                          type="button"
+                          onClick={onResetSampleEmployees}
+                          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                        >
+                          🚢 Nạp 6 Nhân Sự Mẫu Vận Tải Thủy & Cảng Biển
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={onAddNewEmployee}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                      >
+                        + Thêm Nhân Viên Mới
+                      </button>
+                    </div>
+                  </div>
                 </td>
               </tr>
             ) : (

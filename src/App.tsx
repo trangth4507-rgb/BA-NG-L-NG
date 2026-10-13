@@ -16,6 +16,7 @@ import {
   loadAllPeriods,
   saveAllPeriods,
   getInitialPayrollPeriod,
+  INITIAL_EMPLOYEES,
 } from './services/storage';
 import {
   savePeriodToFirestore,
@@ -118,21 +119,40 @@ export default function App() {
         setSyncStatus('syncing');
         const cloudPeriods = await loadPeriodsFromFirestore();
         if (cloudPeriods && cloudPeriods.length > 0) {
-          // Normalize old 34% config to exact 32% if needed
+          // Normalize: Loại bỏ lương sản phẩm, áp dụng danh sách nhân sự vận tải thủy cảng biển
           const normalized = cloudPeriods.map(p => {
-            if (p.config && p.config.employerUnionRate === 0.02 && !p.config.includeTradeUnionFee) {
-              const updated = {
-                ...p,
-                config: {
-                  ...p.config,
-                  employerUnionRate: 0,
-                  includeTradeUnionFee: false,
-                },
-              };
-              savePeriodToFirestore(updated);
-              return updated;
+            const hasEmployees = Array.isArray(p.employees) && p.employees.length > 0;
+            const cleanedEmployees = hasEmployees
+              ? p.employees.map(emp => ({ ...emp, pieceworkItems: [] }))
+              : INITIAL_EMPLOYEES;
+
+            const isOldCompany =
+              !p.companyName ||
+              p.companyName.includes('TIẾN THỊNH') ||
+              p.companyName.includes('HỢP THỊNH') ||
+              p.companyName.includes('SẢN XUẤT');
+
+            const companyName = isOldCompany
+              ? 'CÔNG TY CP VẬN TẢI THỦY NỘI ĐỊA & CẢNG BIỂN TIẾN PHÁT'
+              : p.companyName;
+
+            const updated: PayrollPeriod = {
+              ...p,
+              companyName,
+              products: [],
+              employees: cleanedEmployees,
+              config: {
+                ...p.config,
+                employerUnionRate: 0,
+                includeTradeUnionFee: false,
+              },
+            };
+
+            // Tự động đồng bộ lên Cloud Firestore nếu phát hiện dữ liệu rỗng hoặc chưa cập nhật
+            if (!hasEmployees || isOldCompany || p.config?.employerUnionRate === 0.02) {
+              savePeriodToFirestore(updated).catch(e => console.warn(e));
             }
-            return p;
+            return updated;
           });
           setPeriods(normalized);
           setActivePeriodId(normalized[0].id);
@@ -159,7 +179,15 @@ export default function App() {
       // Listen for realtime updates from Cloud Firestore
       const unsubscribe = subscribeToPeriods(updatedCloudPeriods => {
         if (updatedCloudPeriods && updatedCloudPeriods.length > 0) {
-          setPeriods(updatedCloudPeriods);
+          const sanitized = updatedCloudPeriods.map(p => ({
+            ...p,
+            products: [],
+            employees:
+              Array.isArray(p.employees) && p.employees.length > 0
+                ? p.employees.map(e => ({ ...e, pieceworkItems: [] }))
+                : INITIAL_EMPLOYEES,
+          }));
+          setPeriods(sanitized);
           setSyncStatus('connected');
         }
       });
@@ -397,6 +425,15 @@ export default function App() {
     savePeriodToFirestore(newPeriod);
   };
 
+  // Khôi phục 6 nhân sự mẫu ngành Vận Tải Thủy & Cảng Biển
+  const handleResetSampleEmployees = () => {
+    updateCurrentPeriod(prev => ({
+      ...prev,
+      employees: INITIAL_EMPLOYEES,
+      products: [],
+    }));
+  };
+
   // Google Sheets sync info update
   const handleUpdatePeriodSyncInfo = (sheetId: string, sheetUrl: string) => {
     updateCurrentPeriod(prev => ({
@@ -543,6 +580,7 @@ export default function App() {
               onEditEmployee={handleOpenEditEmployee}
               onDeleteEmployee={handleDeleteEmployee}
               onAddNewEmployee={handleOpenAddEmployee}
+              onResetSampleEmployees={handleResetSampleEmployees}
               onSwitchToEmployeeDirectory={() => handleTabChange('employees')}
               onQuickUpdateWorkDays={handleQuickUpdateWorkDays}
               onQuickUpdateBonus={handleQuickUpdateBonus}
@@ -579,6 +617,7 @@ export default function App() {
             onEditEmployee={handleOpenEditEmployee}
             onDeleteEmployee={handleDeleteEmployee}
             onSyncToCurrentPayroll={handleSyncPersonnelToCurrentPayroll}
+            onResetSampleEmployees={handleResetSampleEmployees}
             onBackToPayroll={() => handleTabChange('payroll')}
           />
         )}
@@ -588,7 +627,6 @@ export default function App() {
       {isEmployeeModalOpen && (
         <EmployeeModal
           employee={editingEmployee}
-          products={activePeriod.products}
           standardWorkDays={activePeriod.standardWorkDays}
           onSave={handleSaveEmployee}
           onClose={() => setIsEmployeeModalOpen(false)}

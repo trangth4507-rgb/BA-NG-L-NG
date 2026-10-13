@@ -34,6 +34,7 @@ interface EmployeeDirectoryProps {
   onEditEmployee: (employee: Employee) => void;
   onDeleteEmployee: (employeeId: string) => void;
   onSyncToCurrentPayroll: () => void;
+  onResetSampleEmployees?: () => void;
   onBackToPayroll?: () => void;
 }
 
@@ -44,6 +45,7 @@ export const EmployeeDirectory: React.FC<EmployeeDirectoryProps> = ({
   onEditEmployee,
   onDeleteEmployee,
   onSyncToCurrentPayroll,
+  onResetSampleEmployees,
   onBackToPayroll,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -450,8 +452,37 @@ export const EmployeeDirectory: React.FC<EmployeeDirectoryProps> = ({
             <tbody className="divide-y divide-slate-100 text-[11px] sm:text-xs">
               {filteredEmployees.length === 0 ? (
                 <tr>
-                  <td colSpan={15} className="px-4 py-8 text-center text-slate-400 text-xs">
-                    Không tìm thấy nhân viên phù hợp tiêu chí tìm kiếm.
+                  <td colSpan={15} className="px-4 py-12 text-center text-slate-500">
+                    <div className="max-w-md mx-auto space-y-3 bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                      <p className="font-bold text-slate-800 text-sm">
+                        {employees.length === 0
+                          ? 'Chưa có hồ sơ nhân sự nào trong hệ thống'
+                          : 'Không tìm thấy nhân viên phù hợp tiêu chí tìm kiếm'}
+                      </p>
+                      <p className="text-xs text-slate-500 leading-relaxed">
+                        {employees.length === 0
+                          ? 'Bạn có thể nạp ngay 6 vị trí nhân sự mẫu ngành Vận Tải Thủy & Cảng Biển (Thuyền trưởng, Máy trưởng, Điều độ luồng, Lái cẩu...) hoặc bấm thêm mới.'
+                          : 'Hãy thử xóa từ khóa tìm kiếm hoặc lọc lại theo phòng ban.'}
+                      </p>
+                      <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                        {employees.length === 0 && onResetSampleEmployees && (
+                          <button
+                            type="button"
+                            onClick={onResetSampleEmployees}
+                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                          >
+                            🚢 Nạp 6 Nhân Sự Mẫu Vận Tải Thủy & Cảng Biển
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={onAddEmployee}
+                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                        >
+                          + Thêm Nhân Viên Mới
+                        </button>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               ) : (

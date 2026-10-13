@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import { Employee, ProductItem, EmployeePieceworkRecord } from '../types/payroll';
+import { Employee } from '../types/payroll';
 import { formatVND } from '../utils/vietnameseCurrency';
 import {
   X,
-  Plus,
-  Trash2,
   HelpCircle,
   User,
   Shield,
@@ -16,7 +14,6 @@ import {
 
 interface EmployeeModalProps {
   employee: Employee | null; // null nếu là thêm mới
-  products?: ProductItem[];
   standardWorkDays: number;
   onSave: (employee: Employee) => void;
   onClose: () => void;
@@ -24,7 +21,6 @@ interface EmployeeModalProps {
 
 export const EmployeeModal: React.FC<EmployeeModalProps> = ({
   employee,
-  products = [],
   standardWorkDays,
   onSave,
   onClose,
@@ -39,14 +35,14 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
       id: `emp_${Date.now()}`,
       code: `NV${Math.floor(100 + Math.random() * 900)}`,
       fullName: '',
-      department: 'Xưởng Sản Xuất 1',
-      position: 'Công nhân',
+      department: 'Đội Tàu Vận Tải Thủy',
+      position: 'Thủy thủ',
       phone: '',
       email: '',
       taxId: '',
       dependentsCount: 0,
       hasInsurance: true,
-      contractSalary: 6000000,
+      contractSalary: 12000000,
       insuranceSalary: 6000000,
       standardWorkDays: standardWorkDays || 26,
       actualWorkDays: standardWorkDays || 26,
@@ -59,10 +55,10 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
       allowances: {
         lunch: 730000,
         transport: 500000,
-        phone: 200000,
+        phone: 300000,
         housing: 0,
         childcare: 0,
-        attendance: 300000,
+        attendance: 500000,
         otherTaxFree: 0,
         otherTaxable: 0,
       },
@@ -74,44 +70,6 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
       note: '',
     };
   });
-
-  const handlePieceworkAdd = (productId: string) => {
-    const prod = products.find(p => p.id === productId);
-    if (!prod) return;
-
-    const existingIdx = formData.pieceworkItems.findIndex(p => p.productId === productId);
-    if (existingIdx >= 0) {
-      const updated = [...formData.pieceworkItems];
-      updated[existingIdx].quantity += 10;
-      updated[existingIdx].total = updated[existingIdx].quantity * updated[existingIdx].unitPrice;
-      setFormData({ ...formData, pieceworkItems: updated });
-    } else {
-      const newItem: EmployeePieceworkRecord = {
-        productId: prod.id,
-        productName: prod.name,
-        unit: prod.unit,
-        unitPrice: prod.unitPrice,
-        quantity: 10,
-        total: 10 * prod.unitPrice,
-      };
-      setFormData({
-        ...formData,
-        pieceworkItems: [...formData.pieceworkItems, newItem],
-      });
-    }
-  };
-
-  const handlePieceworkQtyChange = (index: number, qty: number) => {
-    const updated = [...formData.pieceworkItems];
-    updated[index].quantity = Math.max(0, qty);
-    updated[index].total = updated[index].quantity * updated[index].unitPrice;
-    setFormData({ ...formData, pieceworkItems: updated });
-  };
-
-  const handlePieceworkDelete = (index: number) => {
-    const updated = formData.pieceworkItems.filter((_, i) => i !== index);
-    setFormData({ ...formData, pieceworkItems: updated });
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
