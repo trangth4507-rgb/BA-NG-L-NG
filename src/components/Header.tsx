@@ -144,28 +144,37 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Navigation Tabs (Bảng Lương vs Hồ Sơ Nhân Sự) */}
-          <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 shrink-0">
+          <div className="flex items-center bg-slate-200/80 p-1 rounded-xl border border-slate-300/80 shadow-2xs">
             <button
               onClick={() => onChangeMainTab('payroll')}
-              className={`px-3 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 transition-all ${
                 activeMainTab === 'payroll'
-                  ? 'bg-white text-blue-700 shadow-2xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100/70'
               }`}
             >
-              <FileSpreadsheet className="w-3.5 h-3.5 text-blue-600" />
+              <FileSpreadsheet className={`w-4 h-4 ${activeMainTab === 'payroll' ? 'text-white' : 'text-blue-600'}`} />
               <span>Bảng Lương Tháng</span>
             </button>
             <button
               onClick={() => onChangeMainTab('employees')}
-              className={`px-3 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 transition-all ${
                 activeMainTab === 'employees'
-                  ? 'bg-white text-blue-700 shadow-2xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100/70'
               }`}
             >
-              <Users className="w-3.5 h-3.5 text-indigo-600" />
-              <span>Hồ Sơ Nhân Sự ({allEmployeesCount})</span>
+              <Users className={`w-4 h-4 ${activeMainTab === 'employees' ? 'text-white' : 'text-indigo-600'}`} />
+              <span>Hồ Sơ Nhân Sự</span>
+              <span
+                className={`text-[11px] font-bold px-1.5 py-0.2 rounded-full ${
+                  activeMainTab === 'employees'
+                    ? 'bg-indigo-800 text-white'
+                    : 'bg-indigo-100 text-indigo-800'
+                }`}
+              >
+                {allEmployeesCount}
+              </span>
             </button>
           </div>
 

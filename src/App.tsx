@@ -43,7 +43,7 @@ import { GoogleSheetsModal } from './components/GoogleSheetsModal';
 import { PieceworkManagerModal } from './components/PieceworkManagerModal';
 import { ConfigModal } from './components/ConfigModal';
 import { ExportImportModal } from './components/ExportImportModal';
-import { Shield, HelpCircle, FileSpreadsheet, Database } from 'lucide-react';
+import { Shield, HelpCircle, FileSpreadsheet, Database, Users } from 'lucide-react';
 
 export default function App() {
   const [periods, setPeriods] = useState<PayrollPeriod[]>(() => loadAllPeriods());
@@ -446,6 +446,52 @@ export default function App() {
         onOpenExportModal={() => setIsExportModalOpen(true)}
       />
 
+      {/* Navigation Bar nổi bật giúp chuyển đổi ngay lập tức */}
+      <div className="bg-white border-b border-slate-200/90 shadow-2xs">
+        <div className="max-w-7xl mx-auto px-3 sm:px-5 py-2 flex flex-wrap items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setActiveMainTab('payroll')}
+              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
+                activeMainTab === 'payroll'
+                  ? 'bg-blue-600 text-white shadow-sm ring-2 ring-blue-600/30'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+              }`}
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              <span>BẢNG LƯƠNG THÁNG {activePeriod.month}/{activePeriod.year}</span>
+            </button>
+
+            <button
+              onClick={() => setActiveMainTab('employees')}
+              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
+                activeMainTab === 'employees'
+                  ? 'bg-indigo-600 text-white shadow-sm ring-2 ring-indigo-600/30'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+              }`}
+            >
+              <Users className="w-4 h-4 text-indigo-500" />
+              <span>HỒ SƠ NHÂN SỰ & NHÂN VIÊN</span>
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full font-extrabold ${
+                  activeMainTab === 'employees'
+                    ? 'bg-indigo-800 text-white'
+                    : 'bg-indigo-100 text-indigo-800'
+                }`}
+              >
+                {activePeriod.employees?.length || 0}
+              </span>
+            </button>
+          </div>
+
+          <div className="text-xs text-slate-500 flex items-center gap-2">
+            <span className="hidden md:inline font-medium text-slate-600">
+              {activeMainTab === 'payroll' ? '📊 Đang hiển thị Bảng tính lương tự động & BHXH 32%' : '👥 Đang quản lý danh bạ hồ sơ nhân sự toàn công ty'}
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* Main Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-5 py-3.5 space-y-3">
         {activeMainTab === 'payroll' ? (
@@ -460,6 +506,7 @@ export default function App() {
               onEditEmployee={handleOpenEditEmployee}
               onDeleteEmployee={handleDeleteEmployee}
               onAddNewEmployee={handleOpenAddEmployee}
+              onSwitchToEmployeeDirectory={() => setActiveMainTab('employees')}
               onQuickUpdateWorkDays={handleQuickUpdateWorkDays}
               onQuickUpdateBonus={handleQuickUpdateBonus}
               onQuickUpdateAdvance={handleQuickUpdateAdvance}

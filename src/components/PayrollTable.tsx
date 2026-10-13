@@ -11,6 +11,7 @@ import {
   AlertTriangle,
   ArrowUpDown,
   Layers,
+  Users,
 } from 'lucide-react';
 
 interface PayrollTableProps {
@@ -19,6 +20,7 @@ interface PayrollTableProps {
   onEditEmployee: (employee: Employee) => void;
   onDeleteEmployee: (employeeId: string) => void;
   onAddNewEmployee: () => void;
+  onSwitchToEmployeeDirectory?: () => void;
   onQuickUpdateWorkDays: (employeeId: string, days: number) => void;
   onQuickUpdateBonus: (employeeId: string, bonus: number) => void;
   onQuickUpdateAdvance: (employeeId: string, advance: number) => void;
@@ -44,6 +46,7 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
   onEditEmployee,
   onDeleteEmployee,
   onAddNewEmployee,
+  onSwitchToEmployeeDirectory,
   onQuickUpdateWorkDays,
   onQuickUpdateBonus,
   onQuickUpdateAdvance,
@@ -230,6 +233,17 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
               Đầy Đủ Cột
             </button>
           </div>
+
+          {onSwitchToEmployeeDirectory && (
+            <button
+              onClick={onSwitchToEmployeeDirectory}
+              className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-bold shadow-2xs transition-colors shrink-0"
+              title="Xem và quản lý toàn bộ hồ sơ nhân sự"
+            >
+              <Users className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Hồ Sơ Nhân Sự</span>
+            </button>
+          )}
 
           <button
             onClick={onAddNewEmployee}
